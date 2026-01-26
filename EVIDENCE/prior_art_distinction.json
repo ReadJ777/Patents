@@ -1,0 +1,118 @@
+{
+  "tests": [
+    {
+      "name": "software_only_ternary",
+      "prior_art": "Requires ternary hardware gates",
+      "zime_approach": "Pure software on binary CPU",
+      "evidence": {
+        "0": 34972,
+        "1": 35063,
+        "2": 29965
+      },
+      "validated": true
+    },
+    {
+      "name": "time_based_transition",
+      "prior_art": "Static tri-state (unknown/Z)",
+      "zime_approach": "Dynamic transition activity detection",
+      "evidence": {
+        "stable_density": 0.0,
+        "oscillating_density": 1.0,
+        "gradual_density": 0.030303030303030304
+      },
+      "validated": true
+    },
+    {
+      "name": "deferral_vs_fuzzy",
+      "prior_art": "Fuzzy logic classifies but computes",
+      "zime_approach": "Defer computation for PSI states",
+      "evidence": {
+        "fuzzy_energy_j": 22.533268,
+        "zime_energy_j": 15.641561,
+        "savings_pct": 30.584587197915546,
+        "deferred_count": 14992
+      },
+      "validated": true
+    },
+    {
+      "name": "hysteresis_stability",
+      "prior_art": "Simple threshold comparison",
+      "zime_approach": "Hysteresis-based state machine",
+      "evidence": {
+        "simple_transitions": 490,
+        "hysteresis_transitions": 409,
+        "psi_detections": 755,
+        "oscillation_reduction_pct": 16.53061224489796
+      },
+      "validated": true
+    }
+  ],
+  "generated": "2026-01-26T09:40:06.591439"
+}{
+  "tests": [
+    {
+      "name": "cascade_prevention",
+      "prior_art": "Error handling after failure",
+      "zime_approach": "Prevent cascade by deferring uncertain decisions",
+      "evidence": {
+        "binary": {
+          "successful": 9122,
+          "cascade_failures": 878,
+          "prevented": 0
+        },
+        "zime": {
+          "successful": 7016,
+          "cascade_failures": 0,
+          "prevented": 2984
+        },
+        "failure_reduction_pct": 100.0
+      },
+      "validated": true
+    },
+    {
+      "name": "graceful_degradation",
+      "prior_art": "Hard failure under uncertainty",
+      "zime_approach": "Graceful degradation via deferral",
+      "evidence": {
+        "binary": {
+          "completed": 8524,
+          "errors": 1476,
+          "deferred": 0,
+          "accuracy": 0.8524
+        },
+        "zime": {
+          "completed": 6961,
+          "errors": 0,
+          "deferred": 3039,
+          "accuracy": 1.0
+        }
+      },
+      "validated": true
+    },
+    {
+      "name": "energy_aware_decisions",
+      "prior_art": "System-level power management (DVFS, sleep)",
+      "zime_approach": "Application-level energy-aware decisions",
+      "evidence": {
+        "binary_energy_j": 10.139683,
+        "zime_energy_j": 6.807844,
+        "savings_pct": 32.85940004238791,
+        "deferred": 14994
+      },
+      "validated": true
+    },
+    {
+      "name": "legacy_compatibility",
+      "prior_art": "Requires new hardware for efficiency",
+      "zime_approach": "Pure software on existing CPUs",
+      "evidence": {
+        "cpu": "Intel(R) Celeron(R) N4000 CPU @ 1.10GHz",
+        "kernel": "6.14.0-37-generic",
+        "ternary_working": true,
+        "energy_savings_pct": 32.85940004238791
+      },
+      "validated": true
+    }
+  ],
+  "generated": "2026-01-26T09:41:08.496099"
+}
