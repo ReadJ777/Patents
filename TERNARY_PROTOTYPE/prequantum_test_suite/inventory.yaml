@@ -1,0 +1,68 @@
+# ZIME Framework Pre-Quantum Test Suite - Node Inventory
+# Patent 63/967,611 Validation
+# Generated: 2026-01-26
+
+nodes:
+  ternary:
+    CLIENTTWIN:
+      ip: 192.168.1.110
+      os: Ubuntu 24.04 (Linux 6.14.0-37-generic)
+      cpu: AMD A6-4455M APU (2 cores, 2.1GHz)
+      ram: 3.3GB
+      gpu: AMD Radeon HD 7500G (Trinity)
+      power_monitoring: false  # No RAPL
+      stack_depth: FULL  # UEFI + Hypervisor + Kernel + Userspace
+      ternary_components:
+        - uefi: /boot/efi/EFI/ZIME/TernaryInit.efi (v1.2)
+        - hypervisor: ternary_kvm.ko (Ring -1)
+        - kernel: ternary_sched.ko
+        - userspace: Python ternary library
+      role: PRIMARY_TERNARY
+      
+    HOMEBASE:
+      ip: 192.168.1.202
+      os: OpenBSD 7.8 (GENERIC.MP#54)
+      cpu: Intel Celeron N4020 (2 cores, 1.1GHz)
+      ram: 4GB
+      gpu: Intel UHD Graphics 600
+      power_monitoring: false
+      stack_depth: LIBRARY  # Native C library
+      ternary_components:
+        - library: /root/ternary/libternary.a
+      role: SECONDARY_TERNARY
+
+  binary:
+    CLIENT:
+      ip: 192.168.1.108
+      os: Ubuntu 24.04 (Linux 6.14.0-37-generic)
+      cpu: Intel Celeron N4000 (2 cores, 2.6GHz boost)
+      ram: 3.6GB
+      gpu: Intel UHD Graphics 600
+      power_monitoring: true  # RAPL available
+      stack_depth: NONE
+      ternary_components: []
+      role: PRIMARY_CONTROL
+      
+    HOMEBASEMIRROR:
+      ip: 192.168.1.107
+      os: OpenBSD 7.8 (GENERIC.MP#54)
+      cpu: Intel Core i5-4210U (4 cores, 1.7GHz)
+      ram: 8GB
+      gpu: Intel HD Graphics (Haswell)
+      power_monitoring: false
+      stack_depth: NONE
+      ternary_components: []
+      role: SECONDARY_CONTROL
+
+# Third-state interface paths
+ternary_interfaces:
+  kernel_proc: /proc/zime_activity
+  kernel_sys: /sys/kernel/zime/
+  module_params: /sys/module/ternary_sched/parameters/
+  
+# Test parameters
+test_parameters:
+  transition_window_seconds: 30
+  psi_threshold_percent: 15  # ±15% hysteresis
+  soak_test_hours: 24
+  iterations_per_test: 50000
