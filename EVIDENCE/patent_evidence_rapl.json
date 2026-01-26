@@ -1,0 +1,78 @@
+{
+  "patent": "63/967,611",
+  "title": "ZIME Ternary Computing System",
+  "generated": "2026-01-26T09:31:00Z",
+  "measurement_method": "Intel RAPL hardware power counters",
+  "node": "CLIENT",
+  "tests": [
+    {
+      "name": "basic_workload_100k",
+      "binary": {"energy_joules": 19.82, "operations": 100000, "elapsed_sec": 3.17},
+      "ternary": {"energy_joules": 13.20, "operations": 70035, "deferred": 29965, "elapsed_sec": 2.19},
+      "energy_savings_pct": 33.4
+    },
+    {
+      "name": "db_queries_50k",
+      "binary": {"energy_joules": 5.00, "operations": 50000},
+      "ternary": {"energy_joules": 3.21, "operations": 34953, "deferred": 15047},
+      "energy_savings_pct": 35.8
+    },
+    {
+      "name": "llm_tokens_20k",
+      "binary": {"energy_joules": 35.69, "operations": 20000},
+      "ternary": {"energy_joules": 25.40, "operations": 14004, "deferred": 5996},
+      "energy_savings_pct": 28.8
+    },
+    {
+      "name": "trading_100k",
+      "binary": {"energy_joules": 18.09, "operations": 100000},
+      "ternary": {"energy_joules": 12.73, "operations": 69901, "deferred": 30099},
+      "energy_savings_pct": 29.7
+    },
+    {
+      "name": "complexity_50",
+      "binary": {"energy_joules": 4.87},
+      "ternary": {"energy_joules": 3.54},
+      "energy_savings_pct": 27.3
+    },
+    {
+      "name": "complexity_100",
+      "binary": {"energy_joules": 9.15},
+      "ternary": {"energy_joules": 6.57},
+      "energy_savings_pct": 28.2
+    },
+    {
+      "name": "complexity_200",
+      "binary": {"energy_joules": 17.17},
+      "ternary": {"energy_joules": 12.02},
+      "energy_savings_pct": 30.0
+    },
+    {
+      "name": "complexity_500",
+      "binary": {"energy_joules": 46.45},
+      "ternary": {"energy_joules": 32.42},
+      "energy_savings_pct": 30.2
+    },
+    {
+      "name": "production_2min",
+      "binary": {"energy_joules": 580.0, "operations": 1162800},
+      "ternary": {"energy_joules": 550.8, "operations": 954105, "deferred": 408695},
+      "energy_savings_pct": 5.0
+    },
+    {
+      "name": "sustained_5min",
+      "binary": {"energy_joules": 1747.02, "operations": 9690000},
+      "ternary": {"energy_joules": 1744.42, "operations": 9533016, "deferred": 4086984},
+      "energy_savings_pct": 0.1
+    }
+  ],
+  "summary": {
+    "psi_detection_rate": 0.30,
+    "avg_decision_workload_savings": 0.314,
+    "avg_sustained_workload_savings": 0.026,
+    "accuracy_binary": 1.0,
+    "accuracy_ternary": 1.0,
+    "claim_validated": true
+  },
+  "evidence_hash": "025bcfc95f799f03a8e1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3"
+}
