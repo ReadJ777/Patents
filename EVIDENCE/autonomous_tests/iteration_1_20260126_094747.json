@@ -1,0 +1,22 @@
+PSI Detection: 38.7%
+Deferral Rate: 31.4%
+Oscillation Reduction: 30%
+{
+  "timestamp": "2026-01-26 09:47:48",
+  "iteration": 1,
+  "tests": {
+    "psi_detection": {
+      "rate": 38.72,
+      "samples": 10000
+    },
+    "deferral": {
+      "rate": 31.37,
+      "energy_est": 29.8015
+    },
+    "hysteresis": {
+      "reduction": 30,
+      "flips_before": 4956,
+      "flips_after": 3469
+    }
+  }
+}
