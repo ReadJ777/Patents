@@ -1,0 +1,33 @@
+## @file
+#  ZIME Ternary Computing System - UEFI Initialization Module
+#  Patent Application: 63/967,611
+#
+#  Copyright (c) 2026 JaKaiser Smith
+#  For GOD Alone. Fearing GOD Alone.
+##
+
+[Defines]
+  INF_VERSION                    = 0x00010005
+  BASE_NAME                      = TernaryInit
+  FILE_GUID                      = 5A494D45-5445-524E-4152-590000000001
+  MODULE_TYPE                    = DXE_DRIVER
+  VERSION_STRING                 = 1.0
+  ENTRY_POINT                    = TernaryInitEntryPoint
+
+[Sources]
+  TernaryInit.c
+
+[Packages]
+  MdePkg/MdePkg.dec
+
+[LibraryClasses]
+  UefiDriverEntryPoint
+  UefiLib
+  MemoryAllocationLib
+  UefiBootServicesTableLib
+  BaseMemoryLib
+
+[Protocols]
+
+[Depex]
+  TRUE

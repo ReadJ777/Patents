@@ -1,0 +1,18 @@
+{
+  "timestamp": "2026-01-25T14:30:26.773943",
+  "patent": "63/967,611",
+  "iterations": 1000000,
+  "binary": {
+    "time_ms": 527.8000760008581,
+    "errors": 60123
+  },
+  "ternary": {
+    "time_ms": 678.334713971708,
+    "errors": 18083,
+    "deferred": 400558
+  },
+  "improvement": {
+    "errors_saved": 42040,
+    "percent_reduction": 69.92332385276849
+  }
+}

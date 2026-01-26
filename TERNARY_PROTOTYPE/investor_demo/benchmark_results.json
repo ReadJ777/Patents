@@ -1,0 +1,26 @@
+{
+  "decision_accuracy": {
+    "winner": "TERNARY",
+    "margin": 12.271099999999997,
+    "ternary": 62.25,
+    "binary": 49.9789
+  },
+  "memory": {
+    "winner": "TERNARY",
+    "compression": 80.0,
+    "binary_bytes": 1000000,
+    "ternary_bytes": 200000
+  },
+  "search": {
+    "winner": "TERNARY",
+    "edge_cases_handled": 19918
+  },
+  "error_recovery": {
+    "winner": "TERNARY",
+    "retry_reduction": 46.820809248554916
+  },
+  "throughput": {
+    "binary_ops_sec": 2010623.53761596,
+    "ternary_ops_sec": 836193.883038472
+  }
+}

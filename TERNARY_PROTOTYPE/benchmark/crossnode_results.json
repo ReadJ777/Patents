@@ -1,0 +1,19 @@
+{
+  "timestamp": "2026-01-25T15:15:57.525420",
+  "patent": "63/967,611",
+  "nodes_tested": 2,
+  "results": [
+    {
+      "node": "CLIENTTWIN",
+      "ip": "192.168.1.110",
+      "kernel_loaded": true,
+      "output": "BINARY: 0.066s, 40196 errors\nTERNARY: 0.080s, 50081 deferred, 0 errors\nIMPROVEMENT: 100.0% error reduction"
+    },
+    {
+      "node": "CLIENT",
+      "ip": "192.168.1.108",
+      "kernel_loaded": true,
+      "output": "BINARY: 0.035s, 40159 errors\nTERNARY: 0.045s, 50191 deferred, 0 errors\nIMPROVEMENT: 100.0% error reduction"
+    }
+  ]
+}

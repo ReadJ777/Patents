@@ -1,0 +1,178 @@
+{
+  "timestamp": "2026-01-25T16:47:07.640392",
+  "total": 21,
+  "passed": 21,
+  "failed": 0,
+  "pass_rate": "100.0%",
+  "duration_seconds": 4.292805,
+  "results": [
+    {
+      "category": "Crash Recovery",
+      "test": "Cascading Failure Recovery",
+      "passed": true,
+      "duration_ms": 0.8480548858642578,
+      "details": "Simulated 5 nodes, 3 failures, full recovery",
+      "methodology": "Validates state reconstruction from distributed backups"
+    },
+    {
+      "category": "Crash Recovery",
+      "test": "Power Loss Simulation",
+      "passed": true,
+      "duration_ms": 3311.7477893829346,
+      "details": "100 decisions persisted with WAL, 100 WAL entries",
+      "methodology": "Tests fsync and write-ahead logging effectiveness"
+    },
+    {
+      "category": "Crash Recovery",
+      "test": "Memory Pressure Test",
+      "passed": true,
+      "duration_ms": 151.1690616607666,
+      "details": "1000 instances created, reduced to 10, still functional",
+      "methodology": "Tests graceful degradation under low memory"
+    },
+    {
+      "category": "Data Integrity",
+      "test": "Corruption Detection",
+      "passed": true,
+      "duration_ms": 0.3795623779296875,
+      "details": "Original hash: 1fdacf8d0c5f24c2..., Corruption detected: True",
+      "methodology": "Validates checksum and hash verification"
+    },
+    {
+      "category": "Data Integrity",
+      "test": "Concurrent Write Test",
+      "passed": true,
+      "duration_ms": 41.420698165893555,
+      "details": "10 threads \u00d7 1000 writes = 10000 results, 0 errors",
+      "methodology": "Validates lock-based consistency"
+    },
+    {
+      "category": "Network Distribution",
+      "test": "Network Partition Test",
+      "passed": true,
+      "duration_ms": 0.2779960632324219,
+      "details": "Partition A: [0.5, 0.5, 0.5], Partition B: [0.5, 0.5], Consensus: True",
+      "methodology": "Tests consensus algorithms"
+    },
+    {
+      "category": "Network Distribution",
+      "test": "Latency Injection Test",
+      "passed": true,
+      "duration_ms": 269.5293426513672,
+      "details": "50 operations with random delays, 0 timeouts",
+      "methodology": "Tests timeout handling"
+    },
+    {
+      "category": "Scale Performance",
+      "test": "High Frequency Updates",
+      "passed": true,
+      "duration_ms": 97.04446792602539,
+      "details": "100,000 updates at 1,030,455/sec",
+      "methodology": "Validates batching and throttling"
+    },
+    {
+      "category": "Scale Performance",
+      "test": "Time-Travel Reconstruction",
+      "passed": true,
+      "duration_ms": 0.339508056640625,
+      "details": "Reconstructed state at event 50 from 100 events",
+      "methodology": "Validates event sourcing implementation"
+    },
+    {
+      "category": "Edge Cases",
+      "test": "Empty State Test",
+      "passed": true,
+      "duration_ms": 0.04887580871582031,
+      "details": "Fresh instance returned: 0.5",
+      "methodology": "Tests initialization from scratch"
+    },
+    {
+      "category": "Edge Cases",
+      "test": "Duplicate Event Test",
+      "passed": true,
+      "duration_ms": 0.08749961853027344,
+      "details": "100 duplicate events, 1 unique result(s)",
+      "methodology": "Validates idempotency"
+    },
+    {
+      "category": "Edge Cases",
+      "test": "Out-of-Order Events",
+      "passed": true,
+      "duration_ms": 0.2574920654296875,
+      "details": "100 events processed out of order, reordered successfully",
+      "methodology": "Tests reordering and buffering"
+    },
+    {
+      "category": "Workflow Engine",
+      "test": "Latency Distribution",
+      "passed": true,
+      "duration_ms": 1.2485980987548828,
+      "details": "P50: 0.000ms, P95: 0.001ms, P99: 0.001ms",
+      "methodology": "Identifies outliers and bottlenecks"
+    },
+    {
+      "category": "Workflow Engine",
+      "test": "Throughput Saturation",
+      "passed": true,
+      "duration_ms": 80.5978775024414,
+      "details": "Maximum throughput: 2,543,544 ops/sec",
+      "methodology": "Identifies scaling limits"
+    },
+    {
+      "category": "Workflow Engine",
+      "test": "Deadlock Detection",
+      "passed": true,
+      "duration_ms": 111.10711097717285,
+      "details": "Deadlock scenario tested, detected: True",
+      "methodology": "Tests deadlock prevention mechanisms"
+    },
+    {
+      "category": "Workflow Engine",
+      "test": "Race Condition Fuzzing",
+      "passed": true,
+      "duration_ms": 46.19169235229492,
+      "details": "10 fuzzers \u00d7 100 ops, 0 errors",
+      "methodology": "Exposes non-deterministic bugs"
+    },
+    {
+      "category": "Scalability",
+      "test": "Linear Scaling Validation",
+      "passed": true,
+      "duration_ms": 29.45232391357422,
+      "details": "1\u21922 workers: 1.16x, 2\u21924 workers: 0.85x",
+      "methodology": "Measures scaling efficiency"
+    },
+    {
+      "category": "Chaos Engineering",
+      "test": "Random Failure Injection",
+      "passed": true,
+      "duration_ms": 8.03375244140625,
+      "details": "Success: 93, Failures: 7, Recovered: 7",
+      "methodology": "Tests system resilience"
+    },
+    {
+      "category": "Ternary Specific",
+      "test": "PSI State Persistence",
+      "passed": true,
+      "duration_ms": 0.1647472381591797,
+      "details": "100 PSI states, all preserved: True",
+      "methodology": "Tests ternary state serialization"
+    },
+    {
+      "category": "Ternary Specific",
+      "test": "Kernel Proc Reliability",
+      "passed": true,
+      "duration_ms": 123.31056594848633,
+      "details": "1000 reads, 0 errors",
+      "methodology": "Tests /proc interface reliability"
+    },
+    {
+      "category": "Ternary Specific",
+      "test": "Decision Consistency",
+      "passed": true,
+      "duration_ms": 0.19168853759765625,
+      "details": "Tested determinism for definite values",
+      "methodology": "Validates consistent behavior"
+    }
+  ]
+}

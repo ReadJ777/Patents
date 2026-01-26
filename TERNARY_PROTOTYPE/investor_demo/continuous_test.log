@@ -1,0 +1,45 @@
+[2026-01-25 16:39:39] ============================================================
+[2026-01-25 16:39:39] ZIME TERNARY - CONTINUOUS BACKGROUND TESTING
+[2026-01-25 16:39:39] Patent: 63/967,611
+[2026-01-25 16:39:39] ============================================================
+[2026-01-25 16:40:39] Cycle 501: 5,010,000 decisions, 15,030,000 logic ops, 0 errors, 83,480 decisions/sec
+[2026-01-25 16:41:39] Cycle 1291: 12,910,000 decisions, 38,730,000 logic ops, 0 errors, 107,506 decisions/sec
+[2026-01-25 16:42:39] Cycle 1984: 19,840,000 decisions, 59,520,000 logic ops, 0 errors, 110,125 decisions/sec
+[2026-01-25 16:43:40] Cycle 2553: 25,530,000 decisions, 76,590,000 logic ops, 0 errors, 106,267 decisions/sec
+[2026-01-25 16:44:40] Cycle 3351: 33,510,000 decisions, 100,530,000 logic ops, 0 errors, 111,606 decisions/sec
+[2026-01-25 16:45:40] Cycle 4020: 40,200,000 decisions, 120,600,000 logic ops, 0 errors, 111,582 decisions/sec
+[2026-01-25 16:46:40] Cycle 4691: 46,910,000 decisions, 140,730,000 logic ops, 0 errors, 111,606 decisions/sec
+[2026-01-25 16:47:40] Cycle 5477: 54,770,000 decisions, 164,310,000 logic ops, 0 errors, 113,997 decisions/sec
+[2026-01-25 16:48:40] Cycle 6324: 63,240,000 decisions, 189,720,000 logic ops, 0 errors, 117,012 decisions/sec
+[2026-01-25 16:49:40] Cycle 7315: 73,150,000 decisions, 219,450,000 logic ops, 0 errors, 121,820 decisions/sec
+[2026-01-25 16:50:40] Cycle 8264: 82,640,000 decisions, 247,920,000 logic ops, 0 errors, 125,117 decisions/sec
+[2026-01-25 16:51:40] Cycle 9258: 92,580,000 decisions, 277,740,000 logic ops, 0 errors, 128,484 decisions/sec
+[2026-01-25 16:52:40] Cycle 10087: 100,870,000 decisions, 302,610,000 logic ops, 0 errors, 129,211 decisions/sec
+[2026-01-25 16:53:40] Cycle 10646: 106,460,000 decisions, 319,380,000 logic ops, 0 errors, 126,638 decisions/sec
+[2026-01-25 16:54:40] Cycle 11547: 115,470,000 decisions, 346,410,000 logic ops, 0 errors, 128,201 decisions/sec
+[2026-01-25 16:55:40] Cycle 12293: 122,930,000 decisions, 368,790,000 logic ops, 0 errors, 127,951 decisions/sec
+[2026-01-25 16:56:40] Cycle 13099: 130,990,000 decisions, 392,970,000 logic ops, 0 errors, 128,324 decisions/sec
+[2026-01-25 16:57:40] Cycle 14007: 140,070,000 decisions, 420,210,000 logic ops, 0 errors, 129,601 decisions/sec
+[2026-01-25 16:58:40] Cycle 14814: 148,140,000 decisions, 444,420,000 logic ops, 0 errors, 129,855 decisions/sec
+[2026-01-25 16:59:40] Cycle 15533: 155,330,000 decisions, 465,990,000 logic ops, 0 errors, 129,351 decisions/sec
+[2026-01-25 17:00:40] Cycle 16026: 160,260,000 decisions, 480,780,000 logic ops, 0 errors, 127,097 decisions/sec
+[2026-01-25 17:01:40] Cycle 16753: 167,530,000 decisions, 502,590,000 logic ops, 0 errors, 126,814 decisions/sec
+[2026-01-25 17:02:40] Cycle 17409: 174,090,000 decisions, 522,270,000 logic ops, 0 errors, 126,054 decisions/sec
+[2026-01-25 17:03:40] Cycle 18125: 181,250,000 decisions, 543,750,000 logic ops, 0 errors, 125,765 decisions/sec
+[2026-01-25 17:04:40] Cycle 18873: 188,730,000 decisions, 566,190,000 logic ops, 0 errors, 125,718 decisions/sec
+[2026-01-25 17:05:41] Cycle 19322: 193,220,000 decisions, 579,660,000 logic ops, 0 errors, 123,757 decisions/sec
+[2026-01-25 17:06:41] Cycle 20021: 200,210,000 decisions, 600,630,000 logic ops, 0 errors, 123,485 decisions/sec
+[2026-01-25 17:07:41] Cycle 20715: 207,150,000 decisions, 621,450,000 logic ops, 0 errors, 123,199 decisions/sec
+[2026-01-25 17:08:41] Cycle 21460: 214,600,000 decisions, 643,800,000 logic ops, 0 errors, 123,228 decisions/sec
+[2026-01-25 17:09:41] Cycle 22026: 220,260,000 decisions, 660,780,000 logic ops, 0 errors, 122,258 decisions/sec
+[2026-01-25 17:10:41] Cycle 22677: 226,770,000 decisions, 680,310,000 logic ops, 0 errors, 121,810 decisions/sec
+[2026-01-25 17:11:41] Cycle 23361: 233,610,000 decisions, 700,830,000 logic ops, 0 errors, 121,566 decisions/sec
+[2026-01-25 17:12:41] Cycle 24254: 242,540,000 decisions, 727,620,000 logic ops, 0 errors, 122,380 decisions/sec
+[2026-01-25 17:13:41] Cycle 24914: 249,140,000 decisions, 747,420,000 logic ops, 0 errors, 122,013 decisions/sec
+[2026-01-25 17:14:41] Cycle 25719: 257,190,000 decisions, 771,570,000 logic ops, 0 errors, 122,356 decisions/sec
+[2026-01-25 17:15:41] Cycle 26493: 264,930,000 decisions, 794,790,000 logic ops, 0 errors, 122,538 decisions/sec
+[2026-01-25 17:16:41] Cycle 27181: 271,810,000 decisions, 815,430,000 logic ops, 0 errors, 122,325 decisions/sec
+[2026-01-25 17:17:41] Cycle 27857: 278,570,000 decisions, 835,710,000 logic ops, 0 errors, 122,069 decisions/sec
+[2026-01-25 17:18:41] Cycle 28566: 285,660,000 decisions, 856,980,000 logic ops, 0 errors, 121,968 decisions/sec
+[2026-01-25 17:19:41] Cycle 29266: 292,660,000 decisions, 877,980,000 logic ops, 0 errors, 121,830 decisions/sec
+[2026-01-25 17:20:42] Cycle 29875: 298,750,000 decisions, 896,250,000 logic ops, 0 errors, 121,332 decisions/sec

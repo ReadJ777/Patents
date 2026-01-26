@@ -1,0 +1,41 @@
+{
+  "timestamp": "2026-01-25 17:18:55",
+  "layers": {
+    "uefi": {
+      "present": true,
+      "efi_file": true,
+      "boot_entry": true,
+      "bios_vendor": "Insyde"
+    },
+    "kernel": {
+      "module_loaded": true,
+      "proc_interface": true,
+      "psi_delta": true,
+      "kernel_version": "6.14.0-37-generic"
+    },
+    "python": {
+      "truth_tables": true,
+      "ops_per_sec": 815453
+    }
+  },
+  "nodes": {
+    "LOCAL": {
+      "uefi": true,
+      "kernel": true,
+      "python": true
+    },
+    "CLIENTTWIN": {
+      "error": "list index out of range"
+    },
+    "CLIENT": {
+      "error": "list index out of range"
+    }
+  },
+  "benchmarks": {
+    "accuracy": {
+      "binary": 50.059,
+      "ternary": 60.483,
+      "improvement": 10.424
+    }
+  }
+}

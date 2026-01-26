@@ -1,0 +1,120 @@
+{
+  "timestamp": "2026-01-25T15:15:28.569988",
+  "patent": "63/967,611",
+  "passed": 22,
+  "failed": 0,
+  "success_rate": 100.0,
+  "tests": [
+    {
+      "name": "Kernel module loaded",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "Psi-delta configured",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "System initializes",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "Config loaded",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "Psi-delta valid",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "All truth tables pass",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "84 operations tested",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "AND3(ON, ON) = ON",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "AND3(ON, OFF) = OFF",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "AND3(ON, PSI) = PSI",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "OR3(OFF, OFF) = OFF",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "OR3(ON, OFF) = ON",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "NOT3(ON) = OFF",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "NOT3(PSI) = PSI",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "XOR3(ON, OFF) = ON",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "PSI resolves ~50/50",
+      "passed": true,
+      "message": "Got 510/1000"
+    },
+    {
+      "name": "'Yes' \u2192 ON",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "'No' \u2192 OFF",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "'Maybe' \u2192 PSI",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "CLIENTTWIN reachable",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "CLIENT reachable",
+      "passed": true,
+      "message": ""
+    },
+    {
+      "name": "HOMEBASE reachable",
+      "passed": true,
+      "message": ""
+    }
+  ],
+  "hostname": "CLIENTTWIN"
+}

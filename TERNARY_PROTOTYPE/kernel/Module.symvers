@@ -1,0 +1,3 @@
+0x7938e74d	ternary_enter_psi_state	ternary_sched	EXPORT_SYMBOL	
+0x7938e74d	ternary_evaluate_thread	ternary_sched	EXPORT_SYMBOL	
+0x60d52757	ternary_adjust_psi	ternary_sched	EXPORT_SYMBOL	

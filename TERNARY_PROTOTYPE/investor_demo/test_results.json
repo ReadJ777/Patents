@@ -1,0 +1,40 @@
+{
+  "timestamp": "2026-01-25T16:15:34.529513",
+  "duration_seconds": 2.827553,
+  "total_tests": 18,
+  "passed": 18,
+  "failed": 0,
+  "pass_rate": "100.0%",
+  "categories": {
+    "UEFI": {
+      "passed": 3,
+      "failed": 0
+    },
+    "Kernel": {
+      "passed": 4,
+      "failed": 0
+    },
+    "Logic": {
+      "passed": 3,
+      "failed": 0
+    },
+    "PSI": {
+      "passed": 3,
+      "failed": 0
+    },
+    "MultiNode": {
+      "passed": 1,
+      "failed": 0
+    },
+    "GGE": {
+      "passed": 2,
+      "failed": 0
+    },
+    "Performance": {
+      "passed": 2,
+      "failed": 0
+    }
+  },
+  "patent": "63/967,611",
+  "verdict": "APPROVED"
+}
