@@ -30,7 +30,7 @@
 3. Select "Provisional Application for Patent"
 4. Upload SPECIFICATION.md as the specification document
 5. Fill in:
-   - Inventor: ReadJ (Jamel Johnson)
+   - Inventor: JaKaiser Smith
    - Correspondence address: [Your address]
    - **IMPORTANT:** Check box "Claims priority to" and enter: **63/967,611**
 6. Pay $320 filing fee

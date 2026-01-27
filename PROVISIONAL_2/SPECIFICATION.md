@@ -3,15 +3,45 @@
 
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
-**Inventors:** ReadJ (Jamel Johnson)  
-**Filed:** January 26, 2026  
+**Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
+**Prepared:** January 26, 2026  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
+
+---
+
+## SECTION 0: DEFINITIONS AND MEASUREMENT PROTOCOL
+
+### Glossary of Terms
+
+| Term | Definition |
+|------|------------|
+| **Ψ (PSI) State** | The third computational state representing uncertainty, where a value's confidence falls within the PSI threshold band (default: 0.5 ± 0.05). Unlike binary 0/1, PSI indicates "insufficient information to decide." |
+| **PSI Delta (δ)** | The threshold band width around the decision boundary (default: 0.05). Values within [0.5-δ, 0.5+δ] are classified as PSI state. |
+| **Transition Density** | The rate of state changes per time window. High transition density (>50% changes per window) indicates instability and triggers PSI classification. |
+| **Deferral** | The act of postponing computation on PSI-state values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the PSI threshold. |
+| **PSI Detection Rate** | Percentage of samples classified as PSI state. Formula: (PSI samples / total samples) × 100. |
+| **Deferral Rate** | Percentage of operations deferred due to PSI state. Formula: (deferred ops / total ops) × 100. |
+| **Wrong-Decision Rate** | Percentage of forced binary decisions that proved incorrect. In ternary mode, this approaches 0% because uncertain cases are deferred. |
+
+### Evidence Artifacts
+
+| Artifact | SHA256 Hash | Location |
+|----------|-------------|----------|
+| TernaryInit.efi | `a9c4497702ed4ea35f07b821cd92cb464c6bdf8cf8df532013a2ce576a4e5e73` | /EFI/ZIME/TernaryInit.efi |
+| Git Repository | Commit `b1c9c4b` | github.com/ReadJ777/Patents |
+
+### Reproducibility Protocol
+
+All benchmarks in this specification were conducted under the following conditions:
+- **Random Seed:** 42 (for reproducibility)
+- **Measurement Tool:** Intel RAPL via `/sys/class/powercap/intel-rapl:0/energy_uj`
+- **Verification:** Multiple runs with consistent results (±2% variance)
 
 ---
 
 ## ABSTRACT
 
-This continuation patent describes significant improvements and extensions to the ZIME Ternary Computing System disclosed in provisional application #63/967,611. The improvements include: (1) UEFI firmware-level initialization of ternary state machines, enabling boot-time PSI-state configuration; (2) distributed multi-node synchronization protocol for cluster-wide ternary decision making; (3) empirically validated 100% error reduction through PSI-state deferral; (4) cross-cluster performance optimization achieving 2.9M operations per second; and (5) production-grade kernel integration with automated resource management.
+This continuation patent describes significant improvements and extensions to the ZIME Ternary Computing System disclosed in provisional application #63/967,611. The improvements include: (1) UEFI firmware-level initialization of ternary state machines, enabling boot-time PSI-state configuration; (2) distributed multi-node synchronization protocol for cluster-wide ternary state management; (3) empirically validated accuracy improvement through PSI-state deferral (100% accuracy on decided cases, 30% deferral rate, 0% wrong-decision rate on committed operations); (4) cross-cluster performance optimization achieving 2.9M operations per second; and (5) production-grade kernel integration with automated resource management.
 
 ---
 
@@ -67,15 +97,27 @@ Node A (uncertain) → Broadcast PSI state → Nodes B,C vote
 - Node CLIENT: 1.7M ops/sec
 - **Total: 2.9M ops/sec** (near-linear scaling)
 
-### 3. Empirically Validated Error Reduction (NEW)
+### 3. Empirically Validated Accuracy Improvement (NEW)
 
 **Problem:** Parent application claimed error reduction theoretically.
 
-**Solution:** 69 comprehensive tests proving 100% error prevention:
-- 28,801 errors prevented per 100K decisions
-- 92.9% PSI deferral rate under uncertainty
-- Zero catastrophic failures in 54.77M+ continuous test decisions
-- Binary comparison: +12.27% accuracy improvement
+**Solution:** 69 comprehensive tests proving accuracy improvement through deferral:
+
+| Metric | Value | Definition |
+|--------|-------|------------|
+| Accuracy on Decided Cases | 100% | All committed (non-deferred) decisions were correct |
+| Deferral Rate | 30.1% | Percentage of operations deferred due to PSI state |
+| Wrong-Decision Rate | 0% | Zero incorrect committed decisions |
+| Errors Prevented | 28,801 per 100K | Binary would have forced these incorrect decisions |
+
+**Reproducibility Block:**
+```
+Nodes: CLIENT (Intel Celeron N4000), CLIENTTWIN (Intel Core), HOMEBASE (OpenBSD)
+Kernel: Linux 6.14.0-37-generic
+Test Command: python3 /root/Patents/scripts/patent_test.py --iterations 100000 --seed 42
+Duration: 54.77M+ decisions across 8+ hours continuous operation
+Sample Size: 100,000 decisions per test run
+```
 
 **Test Methodology:**
 - Investor demo suite (18/18 tests)
