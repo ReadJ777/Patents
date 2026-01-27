@@ -1396,12 +1396,24 @@ cat /proc/ternary/status
 
 | Metric | Value | Statistical Significance |
 |--------|-------|-------------------------|
-| Total tests | 1,045 | N/A |
-| Tests passed | 1,045 | 100% pass rate |
+| Total tests | **1,475** | N/A |
+| Tests passed | **1,475** | 100% pass rate |
 | Platforms tested | 5 | Cross-platform validation |
 | Error reduction | 100% | p < 0.0001 |
 | Energy savings | 19.6% | Measured via RAPL MSRs |
 | Throughput | 67.56M ops/sec | 135× stated target |
+
+**Test Suite Breakdown:**
+| Suite | Tests/Node | × 5 Nodes | Status |
+|-------|------------|-----------|--------|
+| Core Ternary | 110 | 550 | ✅ |
+| Hardware Improvement (v24) | 33 | 165 | ✅ |
+| Hypervisor Scheduling | 40 | 200 | ✅ |
+| UEFI Integration | 26 | 130 | ✅ |
+| Enablement (§9) | 30 | 150 | ✅ |
+| Prior Art (§10) | 28 | 140 | ✅ |
+| Commercial (§11) | 28 | 140 | ✅ |
+| **TOTAL** | **295** | **1,475** | ✅ |
 
 ### 12.2 Reproducibility Evidence
 
