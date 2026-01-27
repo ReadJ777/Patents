@@ -9,14 +9,12 @@
 
 **SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is the **enabling disclosure** on Linux KVM with Intel VT-x or AMD-V. 
 
-**Enablement Structure:** The invention claims the **METHOD** of PSI state management at hypervisor level (steps a-e in Claim 7). The KVM implementation provides full enablement for this method. The 5 method steps are:
-1. **Event Monitoring:** Track VM exit events (KVM: `handle_exit()` hooks)
-2. **Density Computation:** Compute transition density (KVM: per-vCPU counters)
-3. **Scheduling Adjustment:** Adjust vCPU priority (KVM: `kvm_vcpu_kick()` integration)
-4. **Memory Optimization:** Flag uncertain pages (KVM: `kvm_mmu_*` hooks)
-5. **Guest Visibility:** Expose state to guests (KVM: hypercalls 0x01000001-04)
-
-A person skilled in the art can implement these same 5 steps on other hypervisors (Hyper-V, Xen, VMware) using their equivalent APIs.
+**Enablement Structure:** The invention claims the **METHOD** of PSI state management at hypervisor level (steps a-e in Claim 7). The KVM implementation provides full enablement for this method. The 5 method steps with concrete KVM API mappings are:
+1. **Event Monitoring:** Track VM exit events → KVM: `handle_exit()` hooks in `arch/x86/kvm/vmx/vmx.c`
+2. **Density Computation:** Compute transition density → KVM: per-vCPU counters via `kvm_vcpu` structure
+3. **Scheduling Adjustment:** Adjust vCPU priority → KVM: `kvm_vcpu_kick()` and `kvm_make_request()` APIs
+4. **Memory Optimization:** Flag uncertain pages → KVM: `kvm_mmu_*` hooks in `arch/x86/kvm/mmu/`
+5. **Guest Visibility:** Expose state to guests → KVM: hypercalls 0x01000001-04 via `kvm_emulate_hypercall()`
 
 **VENDOR NEUTRALITY NOTE:** While the implementation examples use AMD-space MSR addresses (0xC001xxxx), the invention is not limited to AMD processors. Alternative embodiments include:
 1. **CPUID-based detection** (leaf 0x40000000) - vendor-neutral

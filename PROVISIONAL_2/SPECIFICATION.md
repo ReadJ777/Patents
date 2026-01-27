@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v22.3)  
+**Prepared:** January 27, 2026 (v22.4)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -16,8 +16,8 @@
 | Term | Definition |
 |------|------------|
 | **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty. **SINGLE CONTROLLING RULE:** A value is classified as Psi-Uncertainty if and only if `confidence ∈ [threshold-δ, threshold+δ]` (the Psi threshold band). With default threshold=0.5 and δ=0.05, this is [0.45, 0.55]; with δ=0.15, this is [0.35, 0.65]. Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
-| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary FOR CLASSIFICATION. **Configurable range:** δ ∈ [0.01, 0.25]. **CONSTRAINT:** δ must satisfy `δ ≤ min(threshold, 1.0 - threshold)` to ensure both BINARY_0 and BINARY_1 regions exist. If configuration violates this constraint, the system clamps δ to the maximum valid value and logs a warning. **Default configurations:** δ=0.05 for ~10% deferral rate (band [0.45, 0.55]), δ=0.15 for ~30% deferral rate (band [0.35, 0.65]). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). **Note:** Deferral rate scales linearly with δ for uniform input distributions. **EDGE CASE:** When δ=0, the Ψ band collapses to a single point; confidence exactly equal to threshold becomes PSI_UNCERTAINTY (boundary-inclusive rule). |
-| **Consensus-Delta (δ_c)** | A SEPARATE parameter for distributed consensus voting margin. **Range:** δ_c ∈ [0.01, 0.50]. **Default:** δ_c = 0.10. **Usage:** Consensus requires `margin > δ_c` for strong agreement, `margin > δ_c/2` for weak agreement with entropy tie-break. **Units:** Dimensionless ratio of normalized vote weights. **DOMAIN BINDING:** All δ_c comparisons operate exclusively in the normalized domain [0.0, 1.0]; raw vote counts are normalized before margin computation via `margin = |norm_weight_0 - norm_weight_1|` where each `norm_weight = vote_weight / total_weight`. **Distinction:** δ_c is INDEPENDENT of classification δ; they serve different purposes and may have different values. |
+| **Psi-Delta (δ)** | **ONE CONTROLLING RULE FOR CLASSIFICATION δ:** The threshold band half-width around the decision boundary. **Range:** δ ∈ [0.01, 0.25] (this is the ONLY valid range). **CONSTRAINT:** δ must satisfy `δ ≤ min(threshold, 1.0 - threshold)`. **Default configurations:** δ=0.05 → ~10% deferral rate, δ=0.10 → ~20% deferral rate, δ=0.15 → ~30% deferral rate. Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. **Note:** This δ is DISTINCT from δ_c (consensus-delta) which has a different range [0.01, 0.50]. |
+| **Consensus-Delta (δ_c)** | **SEPARATE PARAMETER FOR CONSENSUS (not classification).** **Range:** δ_c ∈ [0.01, 0.50] (different from classification δ range). **Default:** δ_c = 0.10. **Usage:** Consensus requires `margin > δ_c` for strong agreement. **DOMAIN BINDING:** All δ_c comparisons operate in normalized domain [0.0, 1.0]. **DISTINCTION:** δ_c is INDEPENDENT of classification δ; they serve different purposes. |
 | **Raw Signal Domain** | Input signals are unsigned 32-bit integers in range [0, 0xFFFFFFFF]. **Normalization function:** `normalize(raw) = clamp(raw / 0xFFFFFFFF, 0.0, 1.0)` where clamp ensures output stays in [0.0, 1.0]. **Saturation behavior:** Values at domain boundaries (0 or 0xFFFFFFFF) produce 0.0 or 1.0 respectively with no special handling. |
 | **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation (SINGLE FORMULA):** `confidence = apply_penalty(ewma(normalize(raw), prev, α), density)` where: (1) `ewma(x, prev, α) = α × x + (1-α) × prev` with α=0.1, (2) `apply_penalty(c, d) = c × (1 - penalty) + 0.5 × penalty` where `penalty = max(0, (d - 0.5) × 2)`. **Interpretation (with threshold=0.5):** Values in [0.0, threshold-δ] → BINARY_0; values in [threshold+δ, 1.0] → BINARY_1; values in [threshold-δ, threshold+δ] → Psi-Uncertainty. |
 | **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. **Counting rule:** A "state change" is counted once per sample interval when the raw signal crosses the threshold (not per-flip within a sample). Maximum one state change per 1ms sample → maximum 100 per window. Formula: `density = clamp(state_changes / 100.0, 0.0, 1.0)`. **Clamping:** Both state_changes (to 100) and density (to [0,1]) are clamped; "high-frequency transitions" refers to rapid threshold crossings across samples, not sub-millisecond oscillations within a sample. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
@@ -124,7 +124,7 @@ All benchmarks in this specification were conducted under the following conditio
 |--------|-------|---------|----------|-------|----------|-------------|
 | Peak throughput | 2.9M ops/sec | Synthetic | Burst test | 3 (sum) | 60 sec | ternary operations |
 | Sustained throughput | 113,997 dec/sec | Synthetic | Continuous | 3 (avg) | 8+ hours | committed decisions |
-| Deferral rate | 30.1% | Synthetic | Mixed | 3 | 8+ hours | psi_deferrals / total_attempts |
+| Deferral rate | 30.1% (at δ=0.15) | Synthetic | Mixed | 3 | 8+ hours | psi_deferrals / total_attempts |
 | Accuracy (committed) | 100% | Synthetic (known answers) | All | 3 | 8+ hours | correct / decisions_committed |
 | Deferral resolution errors | 0.02% | Synthetic | Deferred only | 3 | 8+ hours | resolution_errors / resolved_deferrals |
 | Errors prevented | 28,801/100K | Synthetic | Binary comparison | 1 | Per-run | binary_errors - ternary_errors |
@@ -692,7 +692,7 @@ $ cat /proc/ternary
   "total_attempts": 168984385,
   "decisions_committed": 118120085,
   "psi_deferrals": 50864300,
-  "deferral_rate_percent": 30.1,
+  "deferral_rate_percent": 30.1,  // At δ=0.15 configuration
   "errors_prevented": 28801,
   "uptime_seconds": 28923,
   "nodes_active": 3
@@ -703,7 +703,7 @@ $ cat /proc/ternary
 - `total_attempts`: Total operations submitted (decided + deferred)
 - `decisions_committed`: Operations completed with binary decision (0 or 1)
 - `psi_deferrals`: Operations deferred due to Psi-Uncertainty classification
-- `deferral_rate_percent`: psi_deferrals / total_attempts × 100 = 30.1%
+- `deferral_rate_percent`: psi_deferrals / total_attempts × 100 = 30.1% (at δ=0.15)
 
 **Production Metrics (8+ hours):**
 - Uptime: 100% (no crashes)
