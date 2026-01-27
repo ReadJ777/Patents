@@ -16,10 +16,11 @@
 | Term | Definition |
 |------|------------|
 | **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty. **SINGLE CONTROLLING RULE:** A value is classified as Psi-Uncertainty if and only if `confidence ∈ [threshold-δ, threshold+δ]` (the Psi threshold band). With default threshold=0.5 and δ=0.05, this is [0.45, 0.55]; with δ=0.15, this is [0.35, 0.65]. Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
-| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary. **Configurable range:** δ ∈ [0.01, 0.25]. **CONSTRAINT:** δ must satisfy `δ ≤ min(threshold, 1.0 - threshold)` to ensure both BINARY_0 and BINARY_1 regions exist. If configuration violates this constraint, the system clamps δ to the maximum valid value and logs a warning. **Default configurations:** δ=0.05 for ~10% deferral rate (band [0.45, 0.55]), δ=0.15 for ~30% deferral rate (band [0.35, 0.65]). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). **Note:** Deferral rate scales linearly with δ for uniform input distributions. |
+| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary FOR CLASSIFICATION. **Configurable range:** δ ∈ [0.01, 0.25]. **CONSTRAINT:** δ must satisfy `δ ≤ min(threshold, 1.0 - threshold)` to ensure both BINARY_0 and BINARY_1 regions exist. If configuration violates this constraint, the system clamps δ to the maximum valid value and logs a warning. **Default configurations:** δ=0.05 for ~10% deferral rate (band [0.45, 0.55]), δ=0.15 for ~30% deferral rate (band [0.35, 0.65]). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). **Note:** Deferral rate scales linearly with δ for uniform input distributions. **EDGE CASE:** When δ=0, the Ψ band collapses to a single point; confidence exactly equal to threshold becomes PSI_UNCERTAINTY (boundary-inclusive rule). |
+| **Consensus-Delta (δ_c)** | A SEPARATE parameter for distributed consensus voting margin. **Range:** δ_c ∈ [0.01, 0.50]. **Default:** δ_c = 0.10. **Usage:** Consensus requires `margin > δ_c` for strong agreement, `margin > δ_c/2` for weak agreement with entropy tie-break. **Units:** Dimensionless ratio of normalized vote weights (range [0.0, 1.0]). **Distinction:** δ_c is INDEPENDENT of classification δ; they serve different purposes and may have different values. |
 | **Raw Signal Domain** | Input signals are unsigned 32-bit integers in range [0, 0xFFFFFFFF]. **Normalization function:** `normalize(raw) = clamp(raw / 0xFFFFFFFF, 0.0, 1.0)` where clamp ensures output stays in [0.0, 1.0]. **Saturation behavior:** Values at domain boundaries (0 or 0xFFFFFFFF) produce 0.0 or 1.0 respectively with no special handling. |
 | **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation (SINGLE FORMULA):** `confidence = apply_penalty(ewma(normalize(raw), prev, α), density)` where: (1) `ewma(x, prev, α) = α × x + (1-α) × prev` with α=0.1, (2) `apply_penalty(c, d) = c × (1 - penalty) + 0.5 × penalty` where `penalty = max(0, (d - 0.5) × 2)`. **Interpretation (with threshold=0.5):** Values in [0.0, threshold-δ] → BINARY_0; values in [threshold+δ, 1.0] → BINARY_1; values in [threshold-δ, threshold+δ] → Psi-Uncertainty. |
-| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = clamp(state_changes / 100.0, 0.0, 1.0)`. **Note:** state_changes is capped at 100 per window (one change per sample maximum); any excess is clamped. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
+| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. **Counting rule:** A "state change" is counted once per sample interval when the raw signal crosses the threshold (not per-flip within a sample). Maximum one state change per 1ms sample → maximum 100 per window. Formula: `density = clamp(state_changes / 100.0, 0.0, 1.0)`. **Clamping:** Both state_changes (to 100) and density (to [0,1]) are clamped; "high-frequency transitions" refers to rapid threshold crossings across samples, not sub-millisecond oscillations within a sample. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
 | **Deferral** | The act of postponing computation on Psi-Uncertainty values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the Psi threshold. **Timeout behavior:** Deferred decisions timeout after 1000ms (configurable via `/proc/ternary/deferral_timeout_ms`). **Safe default:** On timeout, the system returns BINARY_0 (fail-safe) and increments `/proc/ternary/timeout_count`. |
 | **Psi Detection Rate** | Percentage of samples classified as Psi-Uncertainty. Formula: (Psi samples / total_attempts) × 100. |
 | **Deferral Rate** | Percentage of operations deferred due to Psi-Uncertainty. Formula: (psi_deferrals / total_attempts) × 100, where total_attempts = decisions_committed + psi_deferrals. |
@@ -384,18 +385,19 @@ module_init(zime_ternary_init);
 
 **Boot Discovery Path (Detailed):**
 
-**Option A: Built-in Driver (Recommended for Production)**
+**CANONICAL PATH: Built-in Driver (Claims 1, 5)**
 ```
 1. UEFI TernaryInit.efi runs at firmware level (before OS)
 2. Configuration Table installed with ZIME_GUID
-3. Linux kernel boots with CONFIG_ZIME_TERNARY=y (built-in)
+3. Linux kernel boots with CONFIG_ZIME_TERNARY=y (built-in, NOT module)
 4. Built-in driver executes during kernel init (before userspace)
 5. efi.config_table[] searched at early boot
 6. Reserved memory mapped via ioremap()
 7. /proc/ternary available before init starts
 ```
+**This is the ONLY path that satisfies boot-time claims.** The kernel driver MUST be built-in (=y) not modular (=m) to inherit UEFI state at boot.
 
-**Option B: Loadable Module (Development/Testing)**
+**Alternative: Loadable Module (Non-Claiming Embodiment)**
 ```
 1. UEFI TernaryInit.efi runs at firmware level
 2. Configuration Table installed with ZIME_GUID
@@ -404,8 +406,9 @@ module_init(zime_ternary_init);
 5. ioremap() maps reserved physical memory
 6. /proc/ternary interface created
 ```
+**NOTE:** Module-based deployment is a development/testing convenience. It does NOT satisfy boot-time inheritance claims because module loading occurs after kernel init. Claims 1 and 5 require the built-in driver path.
 
-**Boot Timing Guarantee:** For boot-time inheritance claims, the built-in driver (Option A) ensures ternary state is available before any userspace process. For module-based deployment (Option B), inclusion in initramfs guarantees availability before root filesystem mount.
+**Boot Timing Guarantee:** For boot-time inheritance claims (Claims 1, 5), the built-in driver ensures ternary state is available before any userspace process. Module-based deployment is disclosed as an alternative embodiment for systems where CONFIG_ZIME_TERNARY=y is not available, but does not satisfy boot-time claims.
 
 **Commercial Applications:**
 - IoT devices with uncertain sensor data
@@ -476,7 +479,9 @@ COLLECT weighted votes from all nodes
 weighted_sum_0 = Σ(weight_i) for votes choosing 0
 weighted_sum_1 = Σ(weight_i) for votes choosing 1
 
-IF |weighted_sum_0 - weighted_sum_1| > delta:
+// NOTE: Uses δ_c (consensus-delta), NOT classification δ
+// δ_c is a SEPARATE parameter for vote margin (default: 0.10)
+IF |weighted_sum_0 - weighted_sum_1| > δ_c:
     → adopt higher-weighted consensus
 ELSE:
     // Shannon entropy tie-break over last N=100 decisions
@@ -499,6 +504,7 @@ ELSE:
 **Control Law for Consensus (Specific Novel Mechanism):**
 ```
 // The ZIME Uncertainty-Weighted Consensus Control Law
+// Uses δ_c (consensus-delta, default 0.10), distinct from classification δ
 decision = DEFER  // Default safe state
 
 total_weight = Σ(weight_i) for all votes
@@ -506,14 +512,14 @@ normalized_0 = weighted_sum_0 / total_weight
 normalized_1 = weighted_sum_1 / total_weight
 margin = |normalized_0 - normalized_1|
 
-IF margin > (2 * delta):        // Strong consensus
+IF margin > δ_c:                // Strong consensus (margin exceeds consensus threshold)
     decision = (normalized_1 > normalized_0) ? BINARY_1 : BINARY_0
-ELIF margin > delta:            // Weak consensus, check entropy
+ELIF margin > (δ_c / 2):        // Weak consensus, check entropy
     IF entropy_tiebreak() < 0.5:
         decision = history_majority()
     ELSE:
         decision = DEFER
-ELSE:                           // No consensus
+ELSE:                           // No consensus (margin too small)
     decision = DEFER
     
 RETURN decision

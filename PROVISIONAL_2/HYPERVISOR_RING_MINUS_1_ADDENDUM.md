@@ -60,6 +60,86 @@
 
 ## TECHNICAL IMPLEMENTATION
 
+### KVM Modification Points (Concrete Integration)
+
+**WHERE the hypervisor is modified:**
+```
+Linux KVM Subsystem Files Modified:
+├── arch/x86/kvm/vmx/vmx.c          # VMX exit handler hooks
+│   └── vmx_handle_exit() → calls ternary_analyze_exit()
+├── arch/x86/kvm/x86.c              # x86 KVM core
+│   └── kvm_emulate_cpuid() → adds CPUID leaf 0x80000100
+│   └── kvm_set_msr_common() → handles MSR 0xC0010300-01
+├── virt/kvm/kvm_main.c             # KVM core
+│   └── kvm_vcpu_ioctl() → adds KVM_IOCTL_ZIME_STATE
+└── include/uapi/linux/kvm.h        # Userspace API
+    └── KVM_CAP_ZIME_TERNARY capability flag
+```
+
+**HOW the modifications work:**
+
+1. **VM Exit Hook** (`vmx.c` modification):
+```c
+// Added to vmx_handle_exit() at arch/x86/kvm/vmx/vmx.c:6200
+static int vmx_handle_exit(struct kvm_vcpu *vcpu, fastpath_t exit_fastpath)
+{
+    // Original KVM exit handling...
+    
+    // ZIME ADDITION: Analyze exit pattern for ternary state
+    if (kvm_has_zime_cap(vcpu->kvm)) {
+        enum ternary_state state = ternary_analyze_exit(vcpu, exit_reason);
+        vcpu->arch.zime_state = state;  // Store in vcpu struct
+        
+        // Update per-VM ternary statistics
+        atomic64_inc(&vcpu->kvm->zime_stats.total_exits);
+        if (state == TERNARY_PSI)
+            atomic64_inc(&vcpu->kvm->zime_stats.psi_transitions);
+    }
+    
+    // Continue with original exit handling...
+}
+```
+
+2. **MSR Handler** (`x86.c` modification):
+```c
+// Added to kvm_set_msr_common() at arch/x86/kvm/x86.c:3400
+case MSR_ZIME_PSI_CONFIG:  // 0xC0010301
+    vcpu->arch.zime_threshold = (data >> 0) & 0xFFFF;
+    vcpu->arch.zime_delta = (data >> 16) & 0xFF;
+    return 0;
+
+// Added to kvm_get_msr_common() at arch/x86/kvm/x86.c:3600  
+case MSR_ZIME_PSI_STATE:   // 0xC0010300
+    *data = (vcpu->arch.zime_state & 0x3) |
+            ((vcpu->arch.zime_density & 0xFF) << 8) |
+            ((vcpu->arch.zime_uncertainty & 0xFFFF) << 16);
+    return 0;
+```
+
+3. **CPUID Handler** (`x86.c` modification):
+```c
+// Added to kvm_emulate_cpuid() at arch/x86/kvm/x86.c:1200
+if (function == 0x80000100 && kvm_has_zime_cap(vcpu->kvm)) {
+    *eax = ZIME_VERSION;      // 0x00010000
+    *ebx = ZIME_FEATURES;     // MSR=1, Hypercall=2, SHM=4
+    *ecx = ZIME_MAX_NODES;    // Cluster size limit
+    *edx = 0;                 // Reserved
+    return;
+}
+```
+
+4. **KVM Capability** (`kvm_main.c` modification):
+```c
+// Added to kvm_vm_ioctl_check_extension() at virt/kvm/kvm_main.c:4200
+case KVM_CAP_ZIME_TERNARY:
+    return 1;  // Capability supported
+```
+
+**Loadable Module vs Built-in:**
+- Production: Patch applied to KVM source, rebuilt with `CONFIG_KVM_ZIME=y`
+- Development: Out-of-tree module using `kvm_x86_ops` function pointer hooks
+- Both methods achieve same guest-visible behavior (MSR/CPUID/hypercall)
+
 ### Module Components
 
 **1. Core KVM Integration** (`ternary_kvm_main.c` - 301 lines)
