@@ -347,15 +347,18 @@ EFI_STATUS EFIAPI UefiMain(EFI_HANDLE ImageHandle, EFI_SYSTEM_TABLE *SystemTable
 **Linux Kernel Parser (Discovery Path):**
 ```c
 // drivers/firmware/efi/zime_ternary.c
-// Kernel module that discovers UEFI Configuration Table at boot
+// BUILT-IN kernel driver (CONFIG_ZIME_TERNARY=y) - discovers UEFI Configuration Table
+// NOTE: This is built-in code using early_initcall, NOT a loadable module
 
 #include <linux/efi.h>
-#include <linux/module.h>
+#include <linux/init.h>      // For __init, early_initcall (NOT module.h)
+#include <linux/io.h>        // For memremap
 
 #define ZIME_GUID EFI_GUID(0x5A494D45, 0x5445, 0x524E, 0x41, 0x52, 0x59, 0x00, 0x00, 0x00, 0x00, 0x00)
 
 static struct ternary_config *zime_config;
 
+// __init: Discarded after boot, proving this is built-in not module
 static int __init zime_ternary_init(void)
 {
     efi_config_table_t *table;
@@ -366,13 +369,16 @@ static int __init zime_ternary_init(void)
         table = &efi.config_table[i];
         if (efi_guidcmp(table->guid, ZIME_GUID) == 0) {
             // Found ZIME Configuration Table
-            zime_config = ioremap(table->table, sizeof(struct ternary_config));
+            // Use memremap (not ioremap) for EfiReservedMemoryType RAM
+            zime_config = memremap(table->table, sizeof(struct ternary_config), MEMREMAP_WB);
             if (zime_config && zime_config->magic == 0x5A494D45) {
                 pr_info("ZIME: Found ternary config at %llx\n", table->table);
                 pr_info("ZIME: Threshold=%.2f, Delta=%.2f\n", 
                         zime_config->psi_threshold, zime_config->psi_delta);
-                // Map reserved memory pool for Psi-Uncertainty operations
-                zime_pool = ioremap(zime_config->pool_phys_addr, zime_config->pool_size);
+                // Map reserved memory pool - memremap for RAM, not ioremap for MMIO
+                zime_pool = memremap(zime_config->pool_phys_addr, zime_config->pool_size, MEMREMAP_WB);
+                // Create /proc/ternary interface (available before init starts)
+                zime_create_proc_interface();
                 return 0;
             }
         }
@@ -380,7 +386,9 @@ static int __init zime_ternary_init(void)
     pr_warn("ZIME: No UEFI configuration table found, using defaults\n");
     return -ENODEV;
 }
-module_init(zime_ternary_init);
+// early_initcall ensures execution before any userspace, during kernel init
+// This is the built-in path; module_init() would be used for loadable module alternative
+early_initcall(zime_ternary_init);
 ```
 
 **Boot Discovery Path (Detailed):**
@@ -390,12 +398,12 @@ module_init(zime_ternary_init);
 1. UEFI TernaryInit.efi runs at firmware level (before OS)
 2. Configuration Table installed with ZIME_GUID
 3. Linux kernel boots with CONFIG_ZIME_TERNARY=y (built-in, NOT module)
-4. Built-in driver executes during kernel init (before userspace)
-5. efi.config_table[] searched at early boot
-6. Reserved memory mapped via ioremap()
-7. /proc/ternary available before init starts
+4. Built-in driver executes via early_initcall() during kernel init
+5. efi.config_table[] searched at early boot (before init/systemd)
+6. Reserved memory mapped via memremap() (for RAM, not ioremap for MMIO)
+7. /proc/ternary created and available before init starts
 ```
-**This is the ONLY path that satisfies boot-time claims.** The kernel driver MUST be built-in (=y) not modular (=m) to inherit UEFI state at boot.
+**This is the ONLY path that satisfies boot-time claims.** The kernel driver MUST be built-in (=y) not modular (=m) to inherit UEFI state at boot. The `early_initcall()` macro ensures execution during kernel initialization, before any userspace process.
 
 **Alternative: Loadable Module (Non-Claiming Embodiment)**
 ```
