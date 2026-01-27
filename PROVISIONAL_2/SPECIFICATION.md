@@ -787,24 +787,30 @@ A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-read
 - (f) Multi-node deployment with measured 100% uptime over 168M+ operations
 
 ### Claim 6: Uncertainty-Aware Node Power Management
-A method of distributed power management based on sustained uncertainty comprising:
-- (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`
-- (b) Threshold detection: IF `node_psi_rate > HIBERNATE_THRESHOLD` (default: 0.90) for `HIBERNATE_WINDOW` (default: 60 seconds), node is candidate for hibernation
-- (c) Workload redistribution: Route pending decisions to nodes with `psi_rate < 0.50` (confident nodes) via cluster coordinator
-- (d) Power state transition mechanism:
-    - Linux: Write to `/sys/devices/system/cpu/cpuN/cpuidle/stateX/disable` to enable deep C-states
-    - x86: Use `monitor/mwait` instruction with C-state hint (MWAIT_CSTATE_C6 = 0x20)
-    - Fallback: `echo "freeze" > /sys/power/state` for platform-level suspend
-- (e) Wake condition via MSR_ZIME_WAKE_NODE (0xC0010310):
-    - Bit 0: Wake request flag (set by coordinator node via IPI or network message)
-    - Bits 1-7: Reserved
-    - Bits 8-15: Reason code (0x01=input_shift, 0x02=quorum_needed, 0x03=explicit_wake)
-    - On wake, node reads MSR to determine reason and resumes processing
-- (f) Computational safety: Hibernation only permitted when `confident_node_count >= QUORUM` (default: 2), ensuring cluster can still make decisions
+A method of power management based on sustained Psi-Uncertainty rate comprising:
+- (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`, computed every `SAMPLE_INTERVAL` (default: 1 second)
+- (b) Hibernate threshold detection: IF `node_psi_rate > HIBERNATE_THRESHOLD` (default: 0.90) for `HIBERNATE_WINDOW` (default: 60 seconds), node enters power-saving state
+- (c) Power state transition via standard Linux interfaces:
+    - Primary: `echo "mem" > /sys/power/state` (S3 suspend-to-RAM)
+    - Alternative: `echo "freeze" > /sys/power/state` (S2idle, lower latency wake)
+    - CPU-only: `echo 1 > /sys/devices/system/cpu/cpuN/online` to offline CPUs (reduces power, maintains network)
+- (d) Wake condition via standard Linux mechanisms:
+    - RTC wake: `echo +60 > /sys/class/rtc/rtc0/wakealarm` (scheduled wake after 60 seconds)
+    - Network wake: Wake-on-LAN (WoL) packet to node's MAC address
+    - Userspace trigger: `systemctl suspend` / `systemctl resume` via SSH from coordinator
+- (e) Coordinator election: Node with lowest `node_psi_rate` below 0.50 becomes coordinator; coordinator tracks cluster state via `/proc/ternary` on each node
+- (f) Safety constraint: Hibernation only permitted when `online_node_count >= QUORUM` (default: 2), verified by coordinator before issuing suspend command
 
-**Implementation Note:** The coordinator node (lowest node_id with psi_rate < 0.50) manages hibernation decisions. Wake signals are sent via UDP broadcast to port 5959 (ZIME_WAKE_PORT), triggering the target node's network interface wake-on-LAN or systemd socket activation.
+**Validation Evidence:** Tested on CLIENT node (Ubuntu 24.04):
+```
+# Verify suspend support
+cat /sys/power/state  # Output: freeze mem disk
+# Suspend for 60 seconds
+echo +60 > /sys/class/rtc/rtc0/wakealarm && echo mem > /sys/power/state
+# Node suspends, wakes after 60 seconds automatically
+```
 
-**Rationale:** If a node cannot decide anything with confidence, forcing it to guess wastes power and produces errors. This claim extends per-operation deferral to per-node hibernation—uncertainty-aware power gating at cluster scale.
+**Rationale:** If a node cannot decide anything with confidence (>90% PSI rate), suspending it saves power without forcing wrong decisions. This extends per-operation deferral to per-node power management using standard Linux power interfaces.
 
 ---
 
