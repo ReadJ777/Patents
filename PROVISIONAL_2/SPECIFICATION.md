@@ -33,31 +33,44 @@
 ┌─────────────────────────────────────────────────────────────────┐
 │                  ZIME TERNARY CLASSIFIER                        │
 │                                                                 │
-│  Input: raw_sample, previous_confidence, transition_count      │
+│  Input: raw_sample (u32), previous_confidence (f32),           │
+│         transition_count (u8), deferral_start_time (u64)       │
 │                                                                 │
-│  Step 1: Compute transition density                             │
+│  CONSTANTS:                                                     │
+│    α = 0.1          // EWMA smoothing factor                   │
+│    MAX_RAW = 0xFFFFFFFF  // u32 max                            │
+│    TIMEOUT_MS = 1000     // deferral timeout                   │
+│    SAFE_DEFAULT = BINARY_0  // fail-safe on timeout            │
+│                                                                 │
+│  Step 1: Normalize raw signal                                   │
+│          normalized = clamp(raw_sample / MAX_RAW, 0.0, 1.0)    │
+│                                                                 │
+│  Step 2: Compute transition density                             │
 │          density = transition_count / 100                       │
 │                                                                 │
-│  Step 2: Compute raw confidence (EWMA)                          │
-│          raw_conf = 0.1 × normalize(raw_sample) + 0.9 × prev    │
+│  Step 3: Compute EWMA                                           │
+│          ewma_conf = α × normalized + (1-α) × previous_conf    │
 │                                                                 │
-│  Step 3: Apply density penalty (pulls toward 0.5)               │
-│          IF density > 0.5:                                      │
-│              penalty = (density - 0.5) × 2  // 0 to 1 scale     │
-│              confidence = raw_conf × (1 - penalty) + 0.5 × penalty│
-│          ELSE:                                                  │
-│              confidence = raw_conf                              │
+│  Step 4: Apply density penalty (SINGLE FORMULA)                 │
+│          penalty = max(0, (density - 0.5) × 2)                 │
+│          confidence = ewma_conf × (1 - penalty) + 0.5 × penalty│
 │                                                                 │
-│  Step 4: SINGLE CLASSIFICATION RULE                             │
+│  Step 5: SINGLE CLASSIFICATION RULE                             │
 │          IF confidence < 0.45:     → BINARY_0                   │
 │          ELIF confidence > 0.55:   → BINARY_1                   │
-│          ELSE:                     → PSI_UNCERTAINTY            │
+│          ELSE:                     → PSI_UNCERTAINTY (defer)    │
+│                                                                 │
+│  Step 6: Handle deferral timeout                                │
+│          IF state == PSI_UNCERTAINTY:                           │
+│              IF (now - deferral_start_time) > TIMEOUT_MS:      │
+│                  → SAFE_DEFAULT (BINARY_0)                      │
+│                  increment timeout_count                        │
 │                                                                 │
 │  Output: { BINARY_0, BINARY_1, PSI_UNCERTAINTY }                │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Key Design Decision:** Transition density is NOT a separate classifier. It modifies the confidence score, which then feeds into the SINGLE classification rule. This ensures unambiguous, testable infringement boundaries.
+**Formula Reconciliation:** The penalty term `(density - 0.5) × 2` maps density [0.5, 1.0] to penalty [0.0, 1.0]. When penalty=0, confidence=ewma_conf unchanged. When penalty=1, confidence=0.5 (full pull to center). This is the SINGLE authoritative formula.
 
 ### Evidence Artifacts
 
@@ -735,10 +748,8 @@ This continuation patent describes significant, non-obvious improvements that tr
 
 **Priority Date:** January 26, 2026  
 **Parent Application:** USPTO #63/967,611 (January 25, 2026)  
-**Inventor:** ReadJ (Jamel Johnson)  
+**Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
 **Organization:** PaP.Arazzi.ME
-
-For GOD Alone. Fearing GOD Alone. 🦅
 
 ---
 
