@@ -7,9 +7,16 @@
 **Patent Reference:** USPTO #63/967,611 (Enhancement)  
 **Market Impact:** Cloud computing ($200B+ market via AWS/Azure)  
 
-**SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is an **exemplary embodiment** on Linux KVM with Intel VT-x or AMD-V. 
+**SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is the **enabling disclosure** on Linux KVM with Intel VT-x or AMD-V. 
 
-**Claim Scope Clarification:** The invention claims the **METHOD** of PSI state management at hypervisor level (steps a-e in Claim 7), not a specific hypervisor implementation. The method is hypervisor-agnostic: any hypervisor that (1) monitors VM exit events, (2) computes transition density, (3) adjusts scheduling, (4) manages memory, and (5) provides guest visibility implements the claimed method. The KVM implementation is the **enabling disclosure**; additional implementations (Hyper-V, Xen, VMware) follow the same method steps with platform-specific APIs.
+**Enablement Structure:** The invention claims the **METHOD** of PSI state management at hypervisor level (steps a-e in Claim 7). The KVM implementation provides full enablement for this method. The 5 method steps are:
+1. **Event Monitoring:** Track VM exit events (KVM: `handle_exit()` hooks)
+2. **Density Computation:** Compute transition density (KVM: per-vCPU counters)
+3. **Scheduling Adjustment:** Adjust vCPU priority (KVM: `kvm_vcpu_kick()` integration)
+4. **Memory Optimization:** Flag uncertain pages (KVM: `kvm_mmu_*` hooks)
+5. **Guest Visibility:** Expose state to guests (KVM: hypercalls 0x01000001-04)
+
+A person skilled in the art can implement these same 5 steps on other hypervisors (Hyper-V, Xen, VMware) using their equivalent APIs.
 
 **VENDOR NEUTRALITY NOTE:** While the implementation examples use AMD-space MSR addresses (0xC001xxxx), the invention is not limited to AMD processors. Alternative embodiments include:
 1. **CPUID-based detection** (leaf 0x40000000) - vendor-neutral

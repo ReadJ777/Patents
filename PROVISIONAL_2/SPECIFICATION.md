@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v22.2)  
+**Prepared:** January 27, 2026 (v22.3)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -760,9 +760,9 @@ A method for initializing ternary computing capabilities at firmware level compr
 - (b) A TERNARY_CONFIG structure stored in UEFI Configuration Table containing: Magic (0x5A494D45), Version, PsiThreshold (default 0.5), PsiDelta (default 0.05), PoolPhysAddr, PoolSize
 - (c) Physical address registration in system memory map for kernel discovery
 - (d) Kernel parser that reads Configuration Table via gTernaryGuid to inherit ternary state. **Kernel Binding:** The primary embodiment uses Linux; the method applies to any UEFI-compatible OS.
-- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** Validation is satisfied when the built-in driver (CONFIG_ZIME_TERNARY=y) creates `/proc/ternary/state` during kernel init, before PID 1 userspace. This is the ONLY path that satisfies the boot-time claim. `/proc/ternary/state` returns a valid PSI ratio (floating-point in [0.0, 1.0]).
+- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** Validation is satisfied when the built-in driver (CONFIG_ZIME_TERNARY=y) creates `/proc/ternary/config` during kernel init, before PID 1 userspace. **Proof of UEFI Inheritance:** `/proc/ternary/config` exposes the UEFI-inherited values (psi_threshold, psi_delta, pool_phys_addr) that match the TERNARY_CONFIG structure from step (b). This is the ONLY path that satisfies the boot-time claim.
 
-**Note:** Module-based deployment (insmod) is disclosed in Section 3 as a SEPARATE development/testing embodiment. It does NOT satisfy this boot-time claim.
+**Note:** Module-based deployment (insmod) is disclosed in Section 3 as a SEPARATE development/testing embodiment. It does NOT satisfy this boot-time claim. The `/proc/ternary/state` file (PSI ratio) is a runtime metric, distinct from `/proc/ternary/config` (UEFI inheritance proof).
 
 ### Claim 2: Uncertainty-Weighted Distributed Consensus Protocol
 A protocol for cluster-wide ternary decision consensus comprising:
