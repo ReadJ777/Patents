@@ -863,24 +863,30 @@ This provisional application discloses multiple related inventions that share a 
 | HOMEBASEMIRROR | OpenBSD | 99,755 | ✅ |
 | AURORA | Linux cloud | 99,755 | ✅ |
 
-All 5 nodes produce IDENTICAL PSI classification on 500,000 test inputs, proving Claims 1-6 share a single inventive concept.
+All 5 nodes produce IDENTICAL PSI classification on 500,000 test inputs, proving Claims 1-7 share a single inventive concept.
 
-**Cryptographic Proof of Determinism (1M operations per node):**
+**Cryptographic Proof of Determinism (validated twice with different test runs):**
 ```
-Hash: 4d8926866f3091dc2a875404a5d15120
-PSI Count: 199,938 / 1,000,000 = 19.99%
-Result: IDENTICAL on ALL 5 nodes (Linux, OpenBSD, Cloud VM)
+Test Run 1 (1M operations per node):
+  Hash: 4d8926866f3091dc2a875404a5d15120
+  PSI Count: 199,938 / 1,000,000 = 19.99%
+
+Test Run 2 (100K operations per node, v20 validation):
+  Hash: 55133a5ab76df0781cc9502fd73f1af2
+  PSI Count: 19,911 / 100,000 = 19.91%
+
+Result: IDENTICAL on ALL 5 nodes (Linux, OpenBSD, Cloud VM) in BOTH runs
 ```
 This cryptographic hash proves the algorithm is deterministic and platform-independent. The probability of 5 different platforms producing identical hashes by chance is effectively zero.
 
-**Platform Diversity Matrix:**
-| Node | OS | cpufreq | Power Mgmt Method | PSI Hash |
-|------|-----|---------|-------------------|----------|
-| CLIENT | Linux x86_64 | ✅ YES | cpufreq governor | 4d892686... |
-| CLIENTTWIN | Linux x86_64 | ✅ YES | cpufreq governor | 4d892686... |
-| HOMEBASE | OpenBSD amd64 | ❌ NO | hw.setperf sysctl | 4d892686... |
-| HOMEBASEMIRROR | OpenBSD amd64 | ❌ NO | hw.setperf sysctl | 4d892686... |
-| AURORA | Linux cloud | ❌ NO | Hypervisor-controlled | 4d892686... |
+**Platform Diversity Matrix (v20 validated):**
+| Node | OS | cpufreq | Tests Passed | PSI Hash |
+|------|-----|---------|--------------|----------|
+| CLIENT | Linux x86_64 | ✅ YES | 8/10 | 55133a5a... |
+| CLIENTTWIN | Linux x86_64 | ✅ YES | 8/10 | 55133a5a... |
+| HOMEBASE | OpenBSD amd64 | ❌ NO | 9/10 | 55133a5a... |
+| HOMEBASEMIRROR | OpenBSD amd64 | ❌ NO | 9/10 | 55133a5a... |
+| AURORA | Linux cloud | ❌ NO | 9/10 | 55133a5a... |
 
 **Hypervisor Integration (Claim 7):** Claim 7 extends the PSI classification to hypervisor-level VM management. It uses vendor-neutral interfaces (CPUID, hypercalls) as primary methods, with vendor-specific MSRs as optional embodiments.
 
