@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v24.4.4 — Prosecution-Grade Language)  
+**Prepared:** January 27, 2026 (v24.4.5 — §103 Argument Hygiene)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 **v24.4.3 Improvements:**
@@ -1766,30 +1766,22 @@ ZIME:       HIGH UNCERTAINTY → Lower frequency (save power on deferred work)
 
 ---
 
-### MATHEMATICAL PROOF OF NON-OBVIOUSNESS
+### SECONDARY CONSIDERATIONS SUMMARY
 
-**Given:**
-- 68+ years of ternary theory availability
-- 35+ years of Linux kernel development
-- 20+ years of hypervisor development
-- 24+ years of power management refinement
-- Millions of skilled developers worldwide
-- ZERO implementations of ZIME's approach
+The following objective indicia under MPEP 2141-2145 support non-obviousness:
 
-**Calculate:**
+| Indicia | Evidence | Measured Result |
+|---------|----------|-----------------|
+| **Long-Felt Need** | 35+ years of Linux development, 0 Ψ implementations | Problem documented since 1991 |
+| **Failure of Others** | 30M+ lines of kernel code, 0 uncertainty-aware scheduling | Despite billions invested |
+| **Teaching Away** | Prior art maximizes throughput; ZIME defers uncertain work | Counter to conventional wisdom |
+| **Unexpected Results** | 20% deferral → 100% error elimination | Synergy > sum of parts |
 
-```
-P(any developer implements ZIME | 68 years, millions of developers) ≈ 0
-
-Observed: ZIME implemented in 2 months by single inventor
-
-P(ZIME is obvious | 68 years of non-implementation) ≈ 0
-```
-
-**If obvious:** P(implementation) should approach 1 over 68 years
-**Observed:** P(implementation) = 0 until ZIME
-
-**CONCLUSION: §103 non-obviousness proven by absence of prior implementation**
+**Measured improvements establishing unexpected results:**
+- 19.6% energy savings (RAPL MSR)
+- 100% error reduction in uncertain zone
+- 67.56M ops/sec throughput (135× target)
+- -3.7% overhead (faster than binary, counter-intuitive)
 
 ---
 
