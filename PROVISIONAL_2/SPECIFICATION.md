@@ -16,10 +16,10 @@
 | Term | Definition |
 |------|------------|
 | **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty. **SINGLE CONTROLLING RULE:** A value is classified as Psi-Uncertainty if and only if `confidence ∈ [threshold-δ, threshold+δ]` (the Psi threshold band). With default threshold=0.5 and δ=0.05, this is [0.45, 0.55]; with δ=0.15, this is [0.35, 0.65]. Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
-| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary. **Configurable range:** δ ∈ [0.01, 0.25]. **Default configurations:** δ=0.05 for ~10% deferral rate (band [0.45, 0.55]), δ=0.15 for ~30% deferral rate (band [0.35, 0.65]). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). **Note:** Deferral rate scales linearly with δ for uniform input distributions. |
+| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary. **Configurable range:** δ ∈ [0.01, 0.25]. **CONSTRAINT:** δ must satisfy `δ ≤ min(threshold, 1.0 - threshold)` to ensure both BINARY_0 and BINARY_1 regions exist. If configuration violates this constraint, the system clamps δ to the maximum valid value and logs a warning. **Default configurations:** δ=0.05 for ~10% deferral rate (band [0.45, 0.55]), δ=0.15 for ~30% deferral rate (band [0.35, 0.65]). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). **Note:** Deferral rate scales linearly with δ for uniform input distributions. |
 | **Raw Signal Domain** | Input signals are unsigned 32-bit integers in range [0, 0xFFFFFFFF]. **Normalization function:** `normalize(raw) = clamp(raw / 0xFFFFFFFF, 0.0, 1.0)` where clamp ensures output stays in [0.0, 1.0]. **Saturation behavior:** Values at domain boundaries (0 or 0xFFFFFFFF) produce 0.0 or 1.0 respectively with no special handling. |
 | **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation (SINGLE FORMULA):** `confidence = apply_penalty(ewma(normalize(raw), prev, α), density)` where: (1) `ewma(x, prev, α) = α × x + (1-α) × prev` with α=0.1, (2) `apply_penalty(c, d) = c × (1 - penalty) + 0.5 × penalty` where `penalty = max(0, (d - 0.5) × 2)`. **Interpretation (with threshold=0.5):** Values in [0.0, threshold-δ] → BINARY_0; values in [threshold+δ, 1.0] → BINARY_1; values in [threshold-δ, threshold+δ] → Psi-Uncertainty. |
-| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = state_changes / 100`. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
+| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = clamp(state_changes / 100.0, 0.0, 1.0)`. **Note:** state_changes is capped at 100 per window (one change per sample maximum); any excess is clamped. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
 | **Deferral** | The act of postponing computation on Psi-Uncertainty values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the Psi threshold. **Timeout behavior:** Deferred decisions timeout after 1000ms (configurable via `/proc/ternary/deferral_timeout_ms`). **Safe default:** On timeout, the system returns BINARY_0 (fail-safe) and increments `/proc/ternary/timeout_count`. |
 | **Psi Detection Rate** | Percentage of samples classified as Psi-Uncertainty. Formula: (Psi samples / total_attempts) × 100. |
 | **Deferral Rate** | Percentage of operations deferred due to Psi-Uncertainty. Formula: (psi_deferrals / total_attempts) × 100, where total_attempts = decisions_committed + psi_deferrals. |
@@ -56,16 +56,21 @@
 │  Step 3: Compute EWMA                                           │
 │          ewma_conf = α × normalized + (1-α) × previous_conf    │
 │                                                                 │
-│  Step 4: Apply density penalty (SINGLE FORMULA)                 │
-│          penalty = max(0, (density - 0.5) × 2)                 │
+│  Step 4: Apply density penalty (SINGLE FORMULA, CLAMPED)        │
+│          raw_penalty = (density - 0.5) × 2                     │
+│          penalty = clamp(raw_penalty, 0.0, 1.0)                │
 │          confidence = ewma_conf × (1 - penalty) + 0.5 × penalty│
 │                                                                 │
-│  Step 5: SINGLE CLASSIFICATION RULE (parametric)                │
-│          lower_bound = threshold - δ                            │
-│          upper_bound = threshold + δ                            │
+│  Step 5: SINGLE CLASSIFICATION RULE (parametric, bounds clamped)│
+│          // Validate δ constraint: δ ≤ min(threshold, 1-threshold)
+│          validated_δ = min(δ, min(threshold, 1.0 - threshold))  │
+│          lower_bound = clamp(threshold - validated_δ, 0.0, 1.0) │
+│          upper_bound = clamp(threshold + validated_δ, 0.0, 1.0) │
+│          // Strict inequality: boundary cases become Ψ          │
 │          IF confidence < lower_bound:  → BINARY_0               │
 │          ELIF confidence > upper_bound: → BINARY_1              │
-│          ELSE:                          → PSI_UNCERTAINTY       │
+│          ELSE:  // confidence ∈ [lower_bound, upper_bound]      │
+│                                        → PSI_UNCERTAINTY        │
 │                                                                 │
 │  Step 6: Compute uncertainty_level (for voting weight)          │
 │          // Max distance from threshold is max(threshold, 1-threshold)
@@ -88,7 +93,11 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Formula Reconciliation:** The penalty term `(density - 0.5) × 2` maps density [0.5, 1.0] to penalty [0.0, 1.0]. When penalty=0, confidence=ewma_conf unchanged. When penalty=1, confidence=0.5 (full pull to center). This is the SINGLE authoritative formula.
+**Formula Reconciliation:** The penalty term `(density - 0.5) × 2` maps density [0.5, 1.0] to raw_penalty [0.0, 1.0]. The penalty is then clamped to [0.0, 1.0] to handle edge cases where density might exceed 1.0 due to high-frequency transitions. When penalty=0, confidence=ewma_conf unchanged. When penalty=1, confidence=0.5 (full pull to center). This is the SINGLE authoritative formula.
+
+**Boundary Classification:** Values exactly at the lower_bound or upper_bound are classified as PSI_UNCERTAINTY (using `<` and `>` for strict inequality on binary regions, `∈ [lower, upper]` for Ψ). This ensures deterministic behavior at boundary values.
+
+**Delta Constraint:** The parameter δ is validated at configuration time to satisfy `δ ≤ min(threshold, 1.0 - threshold)`. This ensures both BINARY_0 and BINARY_1 regions always exist. For threshold=0.5, max δ=0.5. For threshold=0.1, max δ=0.1. Invalid configurations are clamped with a warning logged.
 
 ### Evidence Artifacts
 
@@ -472,9 +481,15 @@ IF |weighted_sum_0 - weighted_sum_1| > delta:
 ELSE:
     // Shannon entropy tie-break over last N=100 decisions
     history = get_decision_history(decision_type, horizon=100)
-    p0 = count(history, 0) / 100
-    p1 = count(history, 1) / 100
-    entropy = -p0*log2(p0) - p1*log2(p1)  // Shannon entropy
+    // Epsilon smoothing to avoid log2(0) undefined behavior
+    EPSILON = 1e-10  // Minimum probability to prevent log2(0)
+    p0 = max(count(history, 0) / 100, EPSILON)
+    p1 = max(count(history, 1) / 100, EPSILON)
+    // Normalize to ensure p0 + p1 = 1 after smoothing
+    total = p0 + p1
+    p0 = p0 / total
+    p1 = p1 / total
+    entropy = -p0*log2(p0) - p1*log2(p1)  // Shannon entropy, now always defined
     IF entropy < 0.5:  // History shows clear preference
         → adopt majority from history
     ELSE:
@@ -511,9 +526,44 @@ Update local state tables
 Log decision for audit trail
 ```
 
-**Fault Tolerance:**
+**Fault Tolerance and Partition Detection:**
+```
+// HEARTBEAT MECHANISM for partition detection
+HEARTBEAT_INTERVAL = 500ms   // Send heartbeat every 500ms
+HEARTBEAT_TIMEOUT = 3        // Missing heartbeats before partition_detected
+
+each node maintains:
+    last_heartbeat[peer_id] = timestamp of last received heartbeat
+    missed_heartbeats[peer_id] = count of consecutive missed heartbeats
+
+every HEARTBEAT_INTERVAL:
+    BROADCAST { type: HEARTBEAT, node_id, timestamp }
+    FOR each known peer:
+        IF (now - last_heartbeat[peer]) > HEARTBEAT_INTERVAL:
+            missed_heartbeats[peer] += 1
+        IF missed_heartbeats[peer] >= HEARTBEAT_TIMEOUT:
+            mark peer as UNREACHABLE
+    
+    // PARTITION DETECTION: If majority of peers unreachable, we may be partitioned
+    reachable_count = count(peers where missed_heartbeats[peer] < HEARTBEAT_TIMEOUT)
+    total_peers = count(all_known_peers)
+    
+    IF reachable_count < (total_peers / 2):
+        partition_detected = TRUE
+        → ALL local decisions become PSI_DEFERRED (safe mode)
+        → Log partition event to /proc/ternary/partition_events
+    ELSE:
+        partition_detected = FALSE
+
+ON receive HEARTBEAT from peer:
+    last_heartbeat[peer] = now
+    missed_heartbeats[peer] = 0
+```
+
+**Fault Tolerance Summary:**
 - Node failures don't block decisions (quorum-based)
-- Network partitions result in safe PSI deferrals
+- Network partitions detected via heartbeat timeout (3 missed = partition)
+- Partitioned nodes enter safe mode (all decisions deferred)
 - Byzantine fault tolerance (future work)
 
 **Measured Latency:**

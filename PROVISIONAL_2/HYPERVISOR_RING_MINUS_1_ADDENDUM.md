@@ -121,6 +121,107 @@ static enum ternary_state analyze_vm_state(struct kvm_vcpu *vcpu) {
 
 ---
 
+## GUEST INTERFACE SPECIFICATION (ABI)
+
+### PSI State Visibility to Guest VMs
+
+The hypervisor exposes ternary state information to guest operating systems via three complementary mechanisms:
+
+**1. MSR-Based Interface (Model-Specific Registers)**
+```
+MSR Address Range: 0xC0010300 - 0xC001030F (vendor-specific, AMD space)
+
+MSR 0xC0010300: ZIME_PSI_STATE (read-only)
+    Bits [1:0]   = Current ternary state (0=BINARY_0, 1=BINARY_1, 2=PSI)
+    Bits [7:2]   = Reserved
+    Bits [15:8]  = Transition density (0-255, scaled from 0.0-1.0)
+    Bits [31:16] = Uncertainty level (0-65535, scaled from 0.0-1.0)
+    Bits [63:32] = Timestamp (microseconds since last state change)
+
+MSR 0xC0010301: ZIME_PSI_CONFIG (read-write)
+    Bits [15:0]  = PSI threshold (scaled: value/65535 = threshold)
+    Bits [23:16] = Delta band width (scaled: value/255 = δ)
+    Bits [31:24] = Reserved
+    Bits [63:32] = Features enabled bitmask
+
+Guest OS reads state:
+    RDMSR 0xC0010300 → RAX contains current ternary state
+
+Guest OS configures threshold:
+    WRMSR 0xC0010301, value → Sets per-VM threshold
+```
+
+**2. CPUID Leaf Interface (Feature Discovery)**
+```
+CPUID Leaf: 0x80000100 (vendor-extended, hypervisor range)
+
+Input: EAX = 0x80000100
+Output:
+    EAX = ZIME_VERSION (e.g., 0x00010000 for v1.0)
+    EBX = FEATURES_SUPPORTED bitmask
+          Bit 0: MSR interface available
+          Bit 1: Hypercall interface available
+          Bit 2: Shared memory interface available
+          Bit 3: Interrupt injection supported
+    ECX = Max supported nodes in cluster
+    EDX = Reserved
+
+Guest OS feature detection:
+    CPUID 0x80000100
+    IF EAX != 0 → ZIME ternary hypervisor present
+    Test EBX bits for available interfaces
+```
+
+**3. Hypercall Interface (KVM-style)**
+```
+Hypercall Number: KVM_HC_ZIME_BASE = 100
+
+KVM_HC_ZIME_GET_STATE (100):
+    Input:  None
+    Output: RAX = Current ternary state (see MSR format)
+    
+KVM_HC_ZIME_SET_THRESHOLD (101):
+    Input:  RBX = Threshold (scaled 0-65535)
+            RCX = Delta (scaled 0-255)
+    Output: RAX = 0 on success, -1 on error
+
+KVM_HC_ZIME_GET_STATS (102):
+    Input:  RBX = Physical address of stats buffer (4KB page)
+    Output: RAX = Bytes written to buffer
+            Buffer filled with:
+                - Total decisions (u64)
+                - PSI deferrals (u64)
+                - Binary commits (u64)
+                - Energy savings estimate (u32, percent * 100)
+
+Guest invocation (Linux KVM):
+    mov $100, %eax    ; Hypercall number
+    vmcall            ; Trigger VM exit
+    ; Result in %rax
+```
+
+### Guest Integration Example (Linux Kernel Module)
+```c
+// Guest-side ZIME state reader
+static u64 zime_read_psi_state(void) {
+    u32 eax, ebx, ecx, edx;
+    
+    // Check if ZIME hypervisor present
+    cpuid(0x80000100, &eax, &ebx, &ecx, &edx);
+    if (eax == 0) return -ENODEV;  // Not running under ZIME hypervisor
+    
+    // Read PSI state via MSR if available
+    if (ebx & 0x1) {
+        return rdmsrl(0xC0010300);
+    }
+    
+    // Fallback to hypercall
+    return kvm_hypercall0(KVM_HC_ZIME_GET_STATE);
+}
+```
+
+---
+
 ## PATENT CLAIMS STRENGTHENED
 
 ### Original Claims Enhanced
