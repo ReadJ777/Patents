@@ -15,10 +15,10 @@
 
 | Term | Definition |
 |------|------------|
-| **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty. **SINGLE CONTROLLING RULE:** A value is classified as Psi-Uncertainty if and only if `confidence ∈ [0.45, 0.55]` (the Psi threshold band). Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
-| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary (default: δ=0.05). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). |
+| **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty. **SINGLE CONTROLLING RULE:** A value is classified as Psi-Uncertainty if and only if `confidence ∈ [threshold-δ, threshold+δ]` (the Psi threshold band). With default threshold=0.5 and δ=0.05, this is [0.45, 0.55]; with δ=0.15, this is [0.35, 0.65]. Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
+| **Psi-Delta (δ)** | The threshold band half-width around the decision boundary. **Configurable range:** δ ∈ [0.01, 0.25]. **Default configurations:** δ=0.05 for ~10% deferral rate (band [0.45, 0.55]), δ=0.15 for ~30% deferral rate (band [0.35, 0.65]). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). **Note:** Deferral rate scales linearly with δ for uniform input distributions. |
 | **Raw Signal Domain** | Input signals are unsigned 32-bit integers in range [0, 0xFFFFFFFF]. **Normalization function:** `normalize(raw) = clamp(raw / 0xFFFFFFFF, 0.0, 1.0)` where clamp ensures output stays in [0.0, 1.0]. **Saturation behavior:** Values at domain boundaries (0 or 0xFFFFFFFF) produce 0.0 or 1.0 respectively with no special handling. |
-| **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation (SINGLE FORMULA):** `confidence = apply_penalty(ewma(normalize(raw), prev, α), density)` where: (1) `ewma(x, prev, α) = α × x + (1-α) × prev` with α=0.1, (2) `apply_penalty(c, d) = c × (1 - penalty) + 0.5 × penalty` where `penalty = max(0, (d - 0.5) × 2)`. **Interpretation:** Values in [0.0, 0.45] → BINARY_0; values in [0.55, 1.0] → BINARY_1; values in [0.45, 0.55] → Psi-Uncertainty. |
+| **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation (SINGLE FORMULA):** `confidence = apply_penalty(ewma(normalize(raw), prev, α), density)` where: (1) `ewma(x, prev, α) = α × x + (1-α) × prev` with α=0.1, (2) `apply_penalty(c, d) = c × (1 - penalty) + 0.5 × penalty` where `penalty = max(0, (d - 0.5) × 2)`. **Interpretation (with threshold=0.5):** Values in [0.0, threshold-δ] → BINARY_0; values in [threshold+δ, 1.0] → BINARY_1; values in [threshold-δ, threshold+δ] → Psi-Uncertainty. |
 | **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = state_changes / 100`. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
 | **Deferral** | The act of postponing computation on Psi-Uncertainty values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the Psi threshold. **Timeout behavior:** Deferred decisions timeout after 1000ms (configurable via `/proc/ternary/deferral_timeout_ms`). **Safe default:** On timeout, the system returns BINARY_0 (fail-safe) and increments `/proc/ternary/timeout_count`. |
 | **Psi Detection Rate** | Percentage of samples classified as Psi-Uncertainty. Formula: (Psi samples / total_attempts) × 100. |
@@ -36,8 +36,12 @@
 │  Input: raw_sample (u32), previous_confidence (f32),           │
 │         transition_count (u8), deferral_start_time (u64)       │
 │                                                                 │
+│  CONFIGURABLE PARAMETERS:                                       │
+│    threshold = 0.5     // Decision boundary center              │
+│    δ (delta) = 0.05-0.15  // Band half-width (0.15 for 30%)    │
+│    α = 0.1             // EWMA smoothing factor                 │
+│                                                                 │
 │  CONSTANTS:                                                     │
-│    α = 0.1          // EWMA smoothing factor                   │
 │    MAX_RAW = 0xFFFFFFFF  // u32 max                            │
 │    TIMEOUT_MS = 1000     // deferral timeout                   │
 │    SAFE_DEFAULT = BINARY_0  // fail-safe on timeout            │
@@ -55,18 +59,26 @@
 │          penalty = max(0, (density - 0.5) × 2)                 │
 │          confidence = ewma_conf × (1 - penalty) + 0.5 × penalty│
 │                                                                 │
-│  Step 5: SINGLE CLASSIFICATION RULE                             │
-│          IF confidence < 0.45:     → BINARY_0                   │
-│          ELIF confidence > 0.55:   → BINARY_1                   │
-│          ELSE:                     → PSI_UNCERTAINTY (defer)    │
+│  Step 5: SINGLE CLASSIFICATION RULE (parametric)                │
+│          lower_bound = threshold - δ                            │
+│          upper_bound = threshold + δ                            │
+│          IF confidence < lower_bound:  → BINARY_0               │
+│          ELIF confidence > upper_bound: → BINARY_1              │
+│          ELSE:                          → PSI_UNCERTAINTY       │
 │                                                                 │
-│  Step 6: Handle deferral timeout                                │
+│  Step 6: Compute uncertainty_level (for voting weight)          │
+│          // Distance from center: 0 at extremes, 1 at threshold│
+│          uncertainty_level = 1.0 - 2.0 × |confidence - threshold|
+│          vote_weight = 1.0 - uncertainty_level  // = 2×|c-0.5| │
+│                                                                 │
+│  Step 7: Handle deferral timeout                                │
 │          IF state == PSI_UNCERTAINTY:                           │
 │              IF (now - deferral_start_time) > TIMEOUT_MS:      │
 │                  → SAFE_DEFAULT (BINARY_0)                      │
 │                  increment timeout_count                        │
 │                                                                 │
 │  Output: { BINARY_0, BINARY_1, PSI_UNCERTAINTY }                │
+│          + uncertainty_level, vote_weight (for distributed)    │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -401,12 +413,14 @@ Unlike standard majority voting where each node's vote has equal weight, ZIME im
 ```
 States: { BINARY_0, BINARY_1, PSI_PENDING, PSI_DEFERRED, PSI_RESOLVED }
 
-Transitions:
-  BINARY_0/1 → PSI_PENDING:    confidence < (threshold + delta)
-  PSI_PENDING → PSI_DEFERRED:  no consensus within timeout (100ms)
-  PSI_PENDING → PSI_RESOLVED:  weighted_consensus >= quorum_threshold
-  PSI_RESOLVED → BINARY_0/1:   additional_data resolves uncertainty
-  PSI_DEFERRED → PSI_PENDING:  retry with new evidence
+Transitions (matches SINGLE CONTROLLING RULE):
+  * → PSI_PENDING:              confidence ∈ [0.45, 0.55]  // Ψ band
+  * → BINARY_0:                 confidence < 0.45
+  * → BINARY_1:                 confidence > 0.55
+  PSI_PENDING → PSI_DEFERRED:   no consensus within timeout (100ms)
+  PSI_PENDING → PSI_RESOLVED:   weighted_consensus >= quorum_threshold
+  PSI_RESOLVED → BINARY_0/1:    additional_data resolves uncertainty
+  PSI_DEFERRED → PSI_PENDING:   retry with new evidence
 ```
 
 **Protocol Phases:**
@@ -415,16 +429,22 @@ Transitions:
 ```
 Each node independently evaluates decision:
 confidence = compute_confidence(input_data)  // See Confidence Score definition
-uncertainty = 1.0 - confidence
-IF confidence > (threshold + delta) → decide BINARY_1
-IF confidence < (threshold - delta) → decide BINARY_0  
-IF |confidence - threshold| <= delta → PSI_PENDING (uncertainty quantified)
+
+// Uncertainty is distance from center (0.5), not from 1.0
+// Both 0.0 and 1.0 represent HIGH confidence (in opposite directions)
+uncertainty_level = 1.0 - 2.0 × |confidence - 0.5|  // 0 at extremes, 1 at center
+
+// Classification per SINGLE CONTROLLING RULE:
+IF confidence > 0.55 → decide BINARY_1
+IF confidence < 0.45 → decide BINARY_0  
+IF confidence ∈ [0.45, 0.55] → PSI_PENDING (uncertainty quantified)
 ```
 
 **Phase 2: Weighted Psi Broadcast**
 ```
 IF local_state == PSI_PENDING:
-    weight = 1.0 - uncertainty_level  // Higher confidence = higher weight
+    // Weight is inverse of uncertainty: confident nodes have MORE influence
+    weight = 1.0 - uncertainty_level  // = 2.0 × |confidence - 0.5|
     BROADCAST { decision_id, node_id, data, uncertainty_level, weight, timestamp }
     WAIT for weighted peer votes (timeout: 100ms)
 ```
