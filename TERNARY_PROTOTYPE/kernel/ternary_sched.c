@@ -338,3 +338,8 @@ static void __exit ternary_sched_exit(void)
 
 module_init(ternary_sched_init);
 module_exit(ternary_sched_exit);
+
+/* v23.0 New Features */
+static u32 deferral_timeout_ms = 1000;  /* Default 1000ms */
+static u64 total_timeout_count = 0;
+static u32 ewma_alpha_permille = 100;   /* α = 0.1 (100/1000) */
