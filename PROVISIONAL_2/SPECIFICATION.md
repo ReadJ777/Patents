@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v22)  
+**Prepared:** January 27, 2026 (v22.1)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -759,8 +759,8 @@ A method for initializing ternary computing capabilities at firmware level compr
 - (a) A UEFI application that allocates EfiReservedMemoryType memory (survives ExitBootServices) for Psi-Uncertainty storage before OS load
 - (b) A TERNARY_CONFIG structure stored in UEFI Configuration Table containing: Magic (0x5A494D45), Version, PsiThreshold (default 0.5), PsiDelta (default 0.05), PoolPhysAddr, PoolSize
 - (c) Physical address registration in system memory map for kernel discovery
-- (d) Linux kernel parser that reads Configuration Table via gTernaryGuid to inherit ternary state
-- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** Validation is satisfied when `/proc/ternary/state` returns a valid PSI ratio (floating-point in [0.0, 1.0]) within 30 seconds of kernel module initialization. The built-in driver (CONFIG_ZIME_TERNARY=y) satisfies this during kernel init; module-based deployment satisfies this within 30 seconds of `insmod`.
+- (d) Kernel parser that reads Configuration Table via gTernaryGuid to inherit ternary state. **Kernel Binding:** The primary embodiment uses Linux; the method applies to any UEFI-compatible OS.
+- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** For built-in driver (CONFIG_ZIME_TERNARY=y), validation is satisfied during kernel init before PID 1. **Alternative Embodiment:** Module-based deployment (insmod) satisfies validation within 30 seconds of load; this is a development convenience, not the claimed boot-time path. `/proc/ternary/state` returns a valid PSI ratio (floating-point in [0.0, 1.0]).
 
 ### Claim 2: Uncertainty-Weighted Distributed Consensus Protocol
 A protocol for cluster-wide ternary decision consensus comprising:
@@ -908,8 +908,10 @@ This cryptographic hash proves the algorithm is deterministic and platform-indep
 - §101 Abstract Idea Defense: 2/2 - Tied to specific hardware
 - Prior Art Distinctions: 5/5 - Fuzzy, Probabilistic, ML, Hardware, Consensus
 - Claim 7 Hypervisor: 118/118 - All interface protocols validated
+- V21 Anticipatory Tests: 60/60 - Pre-emptive USPTO defense
+- V21 Perfect Patent Tests: 50/50 - All 7 claims validated
 
-**Hypervisor Integration (Claim 7):** Claim 7 extends the PSI classification to hypervisor-level VM management. It uses vendor-neutral interfaces (CPUID, hypercalls) as primary methods, with vendor-specific MSRs as optional embodiments.
+**Hypervisor Integration (Claim 7):** Claim 7 extends the PSI classification to hypervisor-level VM management. The canonical interface uses vendor-neutral methods (CPUID leaf 0x40000000, hypercalls 0x01000001-0x01000004) as primary, with vendor-specific MSRs as optional embodiments detailed in the Hypervisor Addendum.
 
 **If Restriction Required, Elect:**
 1. **Primary Election:** Claims 1, 3, 5, 6 (UEFI + Kernel + Metrics + Power Management) - core single-node implementation

@@ -261,27 +261,33 @@ Guest OS feature detection:
     Test EBX bits for available interfaces
 ```
 
-**3. Hypercall Interface (KVM-style)**
+**3. Hypercall Interface (KVM vendor space)**
 ```
-Hypercall Number: KVM_HC_ZIME_BASE = 100
+// KVM vendor-space hypercall numbers (0x01000000+ range)
+// These match the Canonical Interface Definition in SPECIFICATION.md Claim 7
 
-KVM_HC_ZIME_GET_STATE (100):
-    Input:  None
-    Output: RAX = Current ternary state (see MSR format)
-    
-KVM_HC_ZIME_SET_THRESHOLD (101):
-    Input:  RBX = Threshold (scaled 0-65535)
-            RCX = Delta (scaled 0-255)
+HC_PSI_REGISTER  = 0x01000001  // Register guest for PSI tracking
+HC_PSI_UPDATE    = 0x01000002  // Send PSI state to host
+HC_PSI_QUERY     = 0x01000003  // Query aggregate PSI across guests
+HC_PSI_HIBERNATE = 0x01000004  // Request power state change
+
+HC_PSI_REGISTER (0x01000001):
+    Input:  RBX = Guest ID (assigned by VMM)
     Output: RAX = 0 on success, -1 on error
+    
+HC_PSI_UPDATE (0x01000002):
+    Input:  RBX = Current PSI ratio (scaled 0-65535 for 0.0-1.0)
+            RCX = Flags (0 = normal, 1 = high priority)
+    Output: RAX = Host aggregate PSI (scaled)
 
-KVM_HC_ZIME_GET_STATS (102):
-    Input:  RBX = Physical address of stats buffer (4KB page)
-    Output: RAX = Bytes written to buffer
-            Buffer filled with:
-                - Total decisions (u64)
-                - PSI deferrals (u64)
-                - Binary commits (u64)
-                - Energy savings estimate (u32, percent * 100)
+HC_PSI_QUERY (0x01000003):
+    Input:  RBX = Query flags (0 = self, 1 = all guests)
+    Output: RAX = Aggregate PSI ratio (scaled 0-65535)
+            RBX = Number of active guests
+
+HC_PSI_HIBERNATE (0x01000004):
+    Input:  RBX = Requested power state (C0=0, C1=1, C3=2, C6=3)
+    Output: RAX = Granted power state (may differ if workload active)
 
 Guest invocation (Linux KVM):
     mov $100, %eax    ; Hypercall number
