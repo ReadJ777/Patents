@@ -98,8 +98,10 @@ static enum ternary_state analyze_vm_state(struct kvm_vcpu *vcpu) {
     u64 activity = exits + irq_count + mmio_count;
     u64 delta_activity = activity - prev_activity;
     
-    // PSI threshold detection
-    if (delta_activity > ternary_data.psi_threshold) {
+    // Activity threshold detection (hypervisor-specific, event-count based)
+    // Note: This is DISTINCT from kernel psi_threshold (0.5 confidence center)
+    // Hypervisor activity_threshold is an integer event count (default: 1000 events/interval)
+    if (delta_activity > ternary_data.activity_threshold) {
         return TERNARY_PSI;  // High transition activity
     } else if (exits < 10) {
         return TERNARY_ZERO;  // Idle VM
@@ -108,6 +110,12 @@ static enum ternary_state analyze_vm_state(struct kvm_vcpu *vcpu) {
     }
 }
 ```
+
+**Threshold Distinction:**
+| Layer | Threshold Name | Type | Default | Purpose |
+|-------|----------------|------|---------|---------|
+| Kernel | `psi_threshold` | float | 0.5 | Confidence center for decision band |
+| Hypervisor | `activity_threshold` | u64 | 1000 | Event count per interval for VM state |
 
 **Innovation:** Unlike traditional binary VM schedulers, this detects **transition intensity** and uses it as scheduling/power signal.
 

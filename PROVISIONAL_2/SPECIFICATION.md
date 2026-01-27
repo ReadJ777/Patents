@@ -17,8 +17,8 @@
 |------|------------|
 | **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty, where a value's confidence score falls within the Psi threshold band (default: 0.5 ± 0.05). Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
 | **Psi-Delta (δ)** | The threshold band half-width around the decision boundary (default: δ=0.05). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). |
-| **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] computed as: `confidence = 1.0 - (variance / max_variance)` where variance is measured over the sampling window. Values near 0.0 indicate high confidence in binary-0, values near 1.0 indicate high confidence in binary-1, values near 0.5 indicate maximum uncertainty. |
-| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms sliding window, 1ms sampling rate, 100 samples per window. Formula: `density = state_changes / 100`. Values >0.5 (>50 changes per window) trigger Psi-Uncertainty classification. Window resets at each measurement. |
+| **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation:** `confidence = weighted_mean` where weighted_mean is the exponentially-weighted moving average of input samples. **Interpretation:** Values in [0.0, 0.45] → high confidence in BINARY_0; values in [0.55, 1.0] → high confidence in BINARY_1; values in [0.45, 0.55] → Psi-Uncertainty band. **Note:** This is NOT a variance-based metric; it directly represents the weighted signal level. |
+| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = state_changes / 100`. Values >0.5 (>50 changes per window) trigger Psi-Uncertainty classification. Each window is independent; no overlap between consecutive windows. |
 | **Deferral** | The act of postponing computation on Psi-Uncertainty values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the Psi threshold. |
 | **Psi Detection Rate** | Percentage of samples classified as Psi-Uncertainty. Formula: (Psi samples / total_attempts) × 100. |
 | **Deferral Rate** | Percentage of operations deferred due to Psi-Uncertainty. Formula: (psi_deferrals / total_attempts) × 100, where total_attempts = decisions_committed + psi_deferrals. |
@@ -35,8 +35,22 @@
 
 All benchmarks in this specification were conducted under the following conditions:
 - **Random Seed:** 42 (for reproducibility)
-- **Measurement Tool:** Intel RAPL via `/sys/class/powercap/intel-rapl:0/energy_uj`
+- **Measurement Tool:** Intel RAPL via `/sys/class/powercap/intel-rapl:0/energy_uj` (Linux nodes only)
 - **Verification:** Multiple runs with consistent results (±2% variance)
+- **Node Configuration:** Linux nodes (CLIENT, CLIENTTWIN) for RAPL measurements; OpenBSD node (HOMEBASE) for functional testing only
+
+### Benchmark Reconciliation Table
+
+| Metric | Value | Dataset | Workload | Nodes | Duration | Denominator |
+|--------|-------|---------|----------|-------|----------|-------------|
+| Peak throughput | 2.9M ops/sec | Synthetic | Burst test | 3 (sum) | 60 sec | ternary operations |
+| Sustained throughput | 113,997 dec/sec | Synthetic | Continuous | 3 (avg) | 8+ hours | committed decisions |
+| Deferral rate | 30.1% | Synthetic | Mixed | 3 | 8+ hours | psi_deferrals / total_attempts |
+| Accuracy (committed) | 100% | Synthetic (known answers) | All | 3 | 8+ hours | correct / decisions_committed |
+| Deferral resolution errors | 0.02% | Synthetic | Deferred only | 3 | 8+ hours | resolution_errors / resolved_deferrals |
+| Errors prevented | 28,801/100K | Synthetic | Binary comparison | 1 | Per-run | binary_errors - ternary_errors |
+
+**Note on "errors prevented":** This metric compares binary forced-decision mode (87.73% accuracy = 12.27% error rate) against ternary mode on the SAME ambiguous dataset. Of 100K decisions where binary mode forces a choice, 28,801 would be incorrect; ternary mode defers these instead. The 12.27% binary error rate applies to the full dataset, while 28,801/100K represents the subset of errors in ambiguous cases specifically.
 
 ---
 
@@ -293,13 +307,30 @@ static int __init zime_ternary_init(void)
 module_init(zime_ternary_init);
 ```
 
-**Boot Discovery Path:**
-1. UEFI TernaryInit.efi runs before OS load
+**Boot Discovery Path (Detailed):**
+
+**Option A: Built-in Driver (Recommended for Production)**
+```
+1. UEFI TernaryInit.efi runs at firmware level (before OS)
 2. Configuration Table installed with ZIME_GUID
-3. Linux kernel boots, loads zime_ternary.ko
+3. Linux kernel boots with CONFIG_ZIME_TERNARY=y (built-in)
+4. Built-in driver executes during kernel init (before userspace)
+5. efi.config_table[] searched at early boot
+6. Reserved memory mapped via ioremap()
+7. /proc/ternary available before init starts
+```
+
+**Option B: Loadable Module (Development/Testing)**
+```
+1. UEFI TernaryInit.efi runs at firmware level
+2. Configuration Table installed with ZIME_GUID
+3. Linux kernel boots, initramfs loads zime_ternary.ko
 4. Module searches efi.config_table[] for ZIME_GUID
-5. ioremap() maps reserved physical memory into kernel space
-6. /proc/ternary interface created using discovered configuration
+5. ioremap() maps reserved physical memory
+6. /proc/ternary interface created
+```
+
+**Boot Timing Guarantee:** For boot-time inheritance claims, the built-in driver (Option A) ensures ternary state is available before any userspace process. For module-based deployment (Option B), inclusion in initramfs guarantees availability before root filesystem mount.
 
 **Commercial Applications:**
 - IoT devices with uncertain sensor data
@@ -460,9 +491,9 @@ Critical proof: **Ternary software on binary hardware beats binary logic** for r
 - **Winner: Ternary +12.27%**
 
 **Test 2: Memory Efficiency**
-- Binary: 32 bits per decision (including metadata)
-- Ternary: 16 trits in 32-bit word (packed encoding)
-- **Winner: Ternary 80% savings**
+- Binary: 64 bits per decision (32 bits value + 32 bits metadata) - see Memory Efficiency Calculation
+- Ternary: 16 trits in 32-bit word (packed encoding) + shared metadata
+- **Winner: Ternary 80%+ savings (see calculation in Section 4)**
 
 **Test 3: Graceful Degradation**
 - Binary: Retries failed decisions → 46.8 retries per 100 failures
