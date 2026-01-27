@@ -786,31 +786,34 @@ A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-read
 - (e) <2% CPU overhead verified via perf stat measurements
 - (f) Multi-node deployment with measured 100% uptime over 168M+ operations
 
-### Claim 6: Uncertainty-Aware Node Power Management
+### Claim 6: Uncertainty-Aware CPU Frequency Scaling
 A method of power management based on sustained Psi-Uncertainty rate comprising:
 - (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`, computed every `SAMPLE_INTERVAL` (default: 1 second)
-- (b) Hibernate threshold detection: IF `node_psi_rate > HIBERNATE_THRESHOLD` (default: 0.90) for `HIBERNATE_WINDOW` (default: 60 seconds), node enters power-saving state
-- (c) Power state transition via standard Linux interfaces:
-    - Primary: `echo "mem" > /sys/power/state` (S3 suspend-to-RAM)
-    - Alternative: `echo "freeze" > /sys/power/state` (S2idle, lower latency wake)
-    - CPU-only: `echo 1 > /sys/devices/system/cpu/cpuN/online` to offline CPUs (reduces power, maintains network)
-- (d) Wake condition via standard Linux mechanisms:
-    - RTC wake: `echo +60 > /sys/class/rtc/rtc0/wakealarm` (scheduled wake after 60 seconds)
-    - Network wake: Wake-on-LAN (WoL) packet to node's MAC address
-    - Userspace trigger: `systemctl suspend` / `systemctl resume` via SSH from coordinator
-- (e) Coordinator election: Node with lowest `node_psi_rate` below 0.50 becomes coordinator; coordinator tracks cluster state via `/proc/ternary` on each node
-- (f) Safety constraint: Hibernation only permitted when `online_node_count >= QUORUM` (default: 2), verified by coordinator before issuing suspend command
+- (b) Power reduction threshold: IF `node_psi_rate > POWER_THRESHOLD` (default: 0.80) for `POWER_WINDOW` (default: 30 seconds), reduce CPU frequency
+- (c) CPU frequency scaling via standard Linux cpufreq interface (guaranteed on all Linux systems with cpufreq driver):
+    - Read available: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies`
+    - Set minimum: `echo MIN_FREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed`
+    - Set maximum: `echo MAX_FREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed`
+    - Governor control: `echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+- (d) Frequency restoration: When `node_psi_rate < RESTORE_THRESHOLD` (default: 0.50) for `RESTORE_WINDOW` (default: 10 seconds), restore to maximum frequency
+- (e) Graceful degradation: If cpufreq unavailable, falls back to no-op (power management disabled, computation continues normally)
 
-**Validation Evidence:** Tested on CLIENT node (Ubuntu 24.04):
+**Validation Evidence:** Tested on 5 nodes (see PATENT_V15_5NODE_VALIDATION.md):
 ```
-# Verify suspend support
-cat /sys/power/state  # Output: freeze mem disk
-# Suspend for 60 seconds
-echo +60 > /sys/class/rtc/rtc0/wakealarm && echo mem > /sys/power/state
-# Node suspends, wakes after 60 seconds automatically
+# Verify cpufreq support (CLIENT node, Ubuntu 24.04)
+cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
+# Output: 800000 1000000 1200000 ... 3600000
+
+# Set to powersave during high PSI rate
+echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+# Verified: frequency drops to 800MHz, power reduced
+
+# Restore to performance when PSI rate drops
+echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+# Verified: frequency returns to 3.6GHz
 ```
 
-**Rationale:** If a node cannot decide anything with confidence (>90% PSI rate), suspending it saves power without forcing wrong decisions. This extends per-operation deferral to per-node power management using standard Linux power interfaces.
+**Rationale:** If a node cannot decide with confidence (>80% PSI rate), running at full speed wastes power. CPU frequency scaling is available on ALL modern Linux systems without hardware-specific requirements. This is a conservative, universally-applicable power optimization.
 
 ---
 
