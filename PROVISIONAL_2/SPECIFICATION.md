@@ -816,13 +816,39 @@ A method of power management based on sustained Psi-Uncertainty rate comprising:
 
 ---
 
+### Claim 7: Hypervisor-Level Ternary Integration (Ring -1)
+**Platform Scope:** Linux KVM on x86_64 with Intel VT-x or AMD-V. Vendor-neutral interfaces (CPUID, hypercalls) are primary; vendor-specific MSRs are optional embodiments.
+
+A method of integrating Psi-Uncertainty state management at the hypervisor layer comprising:
+- (a) **Event Monitoring:** Tracking VM exit events and interrupt frequencies; high exit frequency indicates high uncertainty state
+- (b) **Density Computation:** Computing transition density metric from raw VM event counts, producing normalized PSI score per virtual machine
+- (c) **Scheduling Adjustment:** Adjusting vCPU scheduling priority based on PSI state; de-prioritizing high-uncertainty VMs until they stabilize
+- (d) **Memory Optimization:** Flagging "uncertain" memory pages for compression or isolation based on access pattern volatility
+- (e) **Guest Visibility:** Providing ternary state visibility to guest operating systems via vendor-neutral interface:
+    - Primary: CPUID leaf 0x40000000 (hypervisor detection) with ZIME feature flags
+    - Primary: KVM hypercalls (0x01000001-0x01000004) for state query/update
+    - Optional: Shared memory region (64-byte ZIMEPSI structure)
+    - Optional: MSR interface (vendor-specific address space)
+
+**Vendor Neutrality:**
+| Interface | Intel | AMD | Status |
+|-----------|-------|-----|--------|
+| CPUID leaf 0x40000000 | ✅ Same | ✅ Same | Vendor-neutral |
+| KVM hypercalls | ✅ Same | ✅ Same | Vendor-neutral |
+| Shared memory | ✅ Same | ✅ Same | Vendor-neutral |
+| MSR addresses | 0x000004xx | 0xC001xxxx | Vendor-specific (optional) |
+
+**Implementation Reference:** See HYPERVISOR_RING_MINUS_1_ADDENDUM.md (894 lines of validated C code)
+
+---
+
 ## RESTRICTION REQUIREMENT STRATEGY
 
 This provisional application discloses multiple related inventions that share a common inventive concept (Psi-Uncertainty ternary computing). If an examiner issues a restriction requirement, the following election strategy is recommended:
 
 ### Unity of Invention - 37 CFR 1.475 Compliance
 
-**Special Technical Feature:** All Claims 1-6 share a SINGLE core invention: the PSI classification algorithm defined in the "Unified Classification State Machine" (lines 29-96). This algorithm is:
+**Special Technical Feature:** All Claims 1-7 share a SINGLE core invention: the PSI classification algorithm defined in the "Unified Classification State Machine" (lines 29-96). This algorithm is:
 
 1. **Identical across all claims** - Same formula, same parameters
 2. **Cross-platform deterministic** - Produces identical results on Linux, OpenBSD, cloud VMs
@@ -856,14 +882,14 @@ This cryptographic hash proves the algorithm is deterministic and platform-indep
 | HOMEBASEMIRROR | OpenBSD amd64 | ❌ NO | hw.setperf sysctl | 4d892686... |
 | AURORA | Linux cloud | ❌ NO | Hypervisor-controlled | 4d892686... |
 
-**Hypervisor Addendum:** The HYPERVISOR_RING_MINUS_1_ADDENDUM.md describes a SEPARATE invention (hypervisor-level ternary computing on Linux KVM). It is included for completeness but may be filed as a divisional application if restriction is required.
+**Hypervisor Integration (Claim 7):** Claim 7 extends the PSI classification to hypervisor-level VM management. It uses vendor-neutral interfaces (CPUID, hypercalls) as primary methods, with vendor-specific MSRs as optional embodiments.
 
 **If Restriction Required, Elect:**
 1. **Primary Election:** Claims 1, 3, 5, 6 (UEFI + Kernel + Metrics + Power Management) - core single-node implementation
 2. **Divisional 1:** Claim 2 (Distributed Consensus) - cluster extension
-3. **Divisional 2:** Hypervisor layer (HYPERVISOR_RING_MINUS_1_ADDENDUM.md) - separate filing, limited to Linux KVM
+3. **Divisional 2:** Claim 7 (Hypervisor Integration) - limited to Linux KVM
 
-**Argument Against Restriction:** Claims 1-6 share the same inventive concept (Psi-Uncertainty classification) and would be examined together under MPEP 806.05(c) as they "overlap in scope" and "share a special technical feature."
+**Argument Against Restriction:** Claims 1-7 share the same inventive concept (Psi-Uncertainty classification) and would be examined together under MPEP 806.05(c) as they "overlap in scope" and "share a special technical feature."
 
 ---
 
