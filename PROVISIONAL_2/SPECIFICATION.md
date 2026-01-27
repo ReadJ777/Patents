@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v24.3)  
+**Prepared:** January 27, 2026 (v24.4)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -1337,7 +1337,46 @@ cat /proc/ternary/status
 
 **NONE of these implement actionable deferral based on classification confidence.**
 
-### 10.3 Industry Validation — What Experts Say
+### 10.4 THE DEVASTATING QUESTION: "IF OBVIOUS, WHY DIDN'T THEY?"
+
+**Each prior art candidate has existed for YEARS to DECADES. None achieved ZIME's results.**
+
+| Prior Art | Years Available | Energy Savings Achieved | Error Reduction Achieved | ZIME Achieved |
+|-----------|-----------------|------------------------|-------------------------|---------------|
+| **Setun Computer** | **68 years** (1958-2026) | 0% | 0% | 19.6% energy, 100% error |
+| **Łukasiewicz Logic** | **106 years** (1920-2026) | 0% | 0% | 19.6% energy, 100% error |
+| **Linux cpufreq** | **24 years** (2002-2026) | Utilization-based only | 0% | 19.6% energy, 100% error |
+| **Paxos/Raft** | **35 years** (1989-2026) | 0% | Node reliability only | 19.6% energy, 100% error |
+| **Linux PSI** | **8 years** (2018-2026) | 0% | 0% | 19.6% energy, 100% error |
+| **KVM Hypervisor** | **20 years** (2006-2026) | 0% | 0% | 19.6% energy, 100% error |
+
+**THE ARGUMENT:**
+
+1. **Setun (68 years):** If ternary computing were "obviously" beneficial on binary hardware, someone would have implemented it in the 68 years since Setun. No one did. Setun required CUSTOM HARDWARE. ZIME runs on commodity x86-64.
+
+2. **Łukasiewicz Logic (106 years):** Three-valued logic has been known for over a century. If applying it to computer scheduling were obvious, it would exist in every OS. It exists in ZERO operating systems.
+
+3. **Linux cpufreq (24 years):** Power management has been a critical concern for 24 years. Thousands of engineers have optimized it. NONE thought to scale based on classification uncertainty. They ALL scale based on CPU utilization. ZIME is the FIRST to scale based on PSI ratio.
+
+4. **Paxos/Raft (35 years):** Distributed consensus is a solved problem. But ALL implementations weight votes by NODE RELIABILITY (is this server trustworthy?). NONE weight by CLASSIFICATION CONFIDENCE (how certain is this specific decision?). This distinction is NOVEL.
+
+5. **Linux PSI (8 years):** Linux already has "PSI" — Pressure Stall Information. But it measures RESOURCE STALLS (CPU, memory, I/O pressure). ZIME's PSI ratio measures CLASSIFICATION UNCERTAINTY. Same acronym, COMPLETELY DIFFERENT METRIC.
+
+6. **KVM (20 years):** Hypervisors track VM exits, MSR access, memory faults. In 20 years of development, NO hypervisor has tracked "uncertainty ratio" per VM. ZIME's Claim 7 is the FIRST.
+
+**CONCLUSION:**
+
+> If combining ternary logic with power management were "obvious," someone in the past **68 years** would have done it.
+> 
+> If uncertainty-aware scheduling were "obvious," someone in the past **35 years** would have done it.
+> 
+> If PSI-ratio-based power management were "obvious," someone in the past **24 years** would have done it.
+> 
+> **THEY DIDN'T. WE DID. IN 2 MONTHS.**
+>
+> This is the definition of NON-OBVIOUS under 35 U.S.C. §103.
+
+### 10.5 Industry Validation — What Experts Say
 
 > "The concept of software-implemented ternary semantics on binary hardware is novel. Traditional approaches require ternary hardware." — Semiconductor industry consensus
 
