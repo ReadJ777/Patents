@@ -441,10 +441,11 @@ Unlike standard majority voting where each node's vote has equal weight, ZIME im
 ```
 States: { BINARY_0, BINARY_1, PSI_PENDING, PSI_DEFERRED, PSI_RESOLVED }
 
-Transitions (matches SINGLE CONTROLLING RULE):
-  * → PSI_PENDING:              confidence ∈ [0.45, 0.55]  // Ψ band
-  * → BINARY_0:                 confidence < 0.45
-  * → BINARY_1:                 confidence > 0.55
+Transitions (matches SINGLE CONTROLLING RULE with parametric threshold±δ):
+  * → PSI_PENDING:              confidence ∈ [threshold-δ, threshold+δ]  // Ψ band
+  * → BINARY_0:                 confidence < threshold-δ
+  * → BINARY_1:                 confidence > threshold+δ
+  // Example: threshold=0.5, δ=0.05 → band [0.45, 0.55]
   PSI_PENDING → PSI_DEFERRED:   no consensus within timeout (100ms)
   PSI_PENDING → PSI_RESOLVED:   weighted_consensus >= quorum_threshold
   PSI_RESOLVED → BINARY_0/1:    additional_data resolves uncertainty
@@ -521,7 +522,9 @@ decision = DEFER  // Default safe state
 total_weight = Σ(weight_i) for all votes
 normalized_0 = weighted_sum_0 / total_weight
 normalized_1 = weighted_sum_1 / total_weight
-margin = |normalized_0 - normalized_1|
+
+// AUTHORITATIVE MARGIN FORMULA (single definition):
+margin = |normalized_0 - normalized_1|  // Range: [0.0, 1.0]
 
 IF margin > δ_c:                // Strong consensus (margin exceeds consensus threshold)
     decision = (normalized_1 > normalized_0) ? BINARY_1 : BINARY_0
@@ -790,30 +793,32 @@ A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-read
 A method of power management based on sustained Psi-Uncertainty rate comprising:
 - (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`, computed every `SAMPLE_INTERVAL` (default: 1 second)
 - (b) Power reduction threshold: IF `node_psi_rate > POWER_THRESHOLD` (default: 0.80) for `POWER_WINDOW` (default: 30 seconds), reduce CPU frequency
-- (c) CPU frequency scaling via standard Linux cpufreq interface (guaranteed on all Linux systems with cpufreq driver):
-    - Read available: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies`
-    - Set minimum: `echo MIN_FREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed`
-    - Set maximum: `echo MAX_FREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_setspeed`
-    - Governor control: `echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
-- (d) Frequency restoration: When `node_psi_rate < RESTORE_THRESHOLD` (default: 0.50) for `RESTORE_WINDOW` (default: 10 seconds), restore to maximum frequency
-- (e) Graceful degradation: If cpufreq unavailable, falls back to no-op (power management disabled, computation continues normally)
+- (c) CPU frequency scaling via standard Linux cpufreq governor interface (available on systems with cpufreq driver; graceful fallback if unavailable):
+    - Check availability: `test -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+    - Read current: `cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+    - Set powersave: `echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+    - Set performance: `echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
+- (d) Frequency restoration: When `node_psi_rate < RESTORE_THRESHOLD` (default: 0.50) for `RESTORE_WINDOW` (default: 10 seconds), restore governor to "performance"
+- (e) Graceful degradation: If cpufreq governor interface unavailable (e.g., virtual machines, containers), power management is disabled and computation continues normally
 
-**Validation Evidence:** Tested on 5 nodes (see PATENT_V15_5NODE_VALIDATION.md):
+**Validation Evidence:** Tested on CLIENT node (Ubuntu 24.04):
 ```
-# Verify cpufreq support (CLIENT node, Ubuntu 24.04)
-cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
-# Output: 800000 1000000 1200000 ... 3600000
+# Check if cpufreq governor available (graceful check)
+if [ -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor ]; then
+  cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
+  # Output: performance
+else
+  echo "cpufreq unavailable - graceful fallback, no power management"
+fi
 
 # Set to powersave during high PSI rate
 echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-# Verified: frequency drops to 800MHz, power reduced
 
 # Restore to performance when PSI rate drops
 echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor
-# Verified: frequency returns to 3.6GHz
 ```
 
-**Rationale:** If a node cannot decide with confidence (>80% PSI rate), running at full speed wastes power. CPU frequency scaling is available on ALL modern Linux systems without hardware-specific requirements. This is a conservative, universally-applicable power optimization.
+**Rationale:** If a node cannot decide with confidence (>80% PSI rate), running at full speed wastes power. CPU frequency scaling via the governor interface is widely available on modern Linux systems; when unavailable, the system gracefully falls back to normal operation. This is a conservative power optimization that enhances but does not require cpufreq support.
 
 ---
 
@@ -927,7 +932,8 @@ This physical verification strengthens Claims 1 and 5:
 **Claim 5 (Production-Grade Integration):**
 - ✅ PROVEN: Deployed to real hardware (CLIENT node - Ubuntu 24.04)
 - ✅ PROVEN: Safe failure handling (system recovered)
-- ✅ PROVEN: Multi-layer stack (UEFI + Hypervisor + Kernel + Library)
+- ✅ PROVEN: Core stack operational (UEFI + Kernel + Library)
+- ✅ DEMONSTRATED: Optional hypervisor layer (separate divisional)
 
 **Timeline for Patent Office:**
 - BIOS Date: 06/26/2025 (HOMEBASE system, 7 months before patent)
@@ -937,17 +943,17 @@ This physical verification strengthens Claims 1 and 5:
 - Full Stack Operational: January 26, 2026 (all layers verified)
 - Continuous development timeline established
 
-**Multi-Layer Architecture Verified:**
+**Multi-Layer Architecture Verified (Claims 1-6 require UEFI+Kernel only; Hypervisor is separate divisional):**
 
 ```
 ┌─────────────────────────────────────────────┐
 │  Ring 3: Applications                       │ ✅ TESTED
 ├─────────────────────────────────────────────┤
-│  Ring 0: Linux Kernel (Ubuntu 24.04)        │ ✅ OPERATIONAL
+│  Ring 0: Linux Kernel (Ubuntu 24.04)        │ ✅ OPERATIONAL (Claim 5)
 ├─────────────────────────────────────────────┤
-│  Ring -1: Hypervisor (ternary_sched)        │ ✅ MODULE LOADED
+│  Ring -1: Hypervisor (SEPARATE DIVISIONAL)  │ ✅ DEMONSTRATED (optional)
 ├─────────────────────────────────────────────┤
-│  Ring -2: UEFI (TernaryInit.efi)            │ ✅ PHYSICALLY BOOTS
+│  Ring -2: UEFI (TernaryInit.efi)            │ ✅ PHYSICALLY BOOTS (Claim 1)
 ├─────────────────────────────────────────────┤
 │  Hardware: x86_64 CPU, Memory               │ ✅ COTS HARDWARE
 └─────────────────────────────────────────────┘
@@ -955,17 +961,17 @@ This physical verification strengthens Claims 1 and 5:
 
 **Current Deployment Status (January 26, 2026 09:56 UTC):**
 - **Node:** CLIENT (Ubuntu 24.04 LTS, Kernel 6.14.0)
-- **UEFI Boot Entry:** Boot0000* ZIME Ternary Init
-- **Hypervisor Module:** ternary_sched (12,288 bytes, loaded)
-- **Boot Path:** TernaryInit.efi → chainload Ubuntu → load hypervisor → operational
-- **Status:** Full stack operational from firmware to application layer
+- **UEFI Boot Entry:** Boot0000* ZIME Ternary Init (Claim 1)
+- **Kernel Module:** Built-in ternary driver via core_initcall (Claim 5)
+- **Boot Path:** TernaryInit.efi → chainload Ubuntu → kernel operational
+- **Status:** Core stack (UEFI+Kernel) operational; hypervisor demonstrated separately
 
 **Documentation References:**
 - UEFI Layer: /root/Patents/TERNARY_PROTOTYPE/docs/UEFI_EXECUTION_SUCCESS.md
-- Hypervisor Layer: /root/Patents/PROVISIONAL_2/HYPERVISOR_RING_MINUS_1_ADDENDUM.md
+- Hypervisor Layer: /root/Patents/PROVISIONAL_2/HYPERVISOR_RING_MINUS_1_ADDENDUM.md (SEPARATE DIVISIONAL)
 - Invention History: /root/Patents/EVIDENCE/INVENTION_CONCEPTION_CHATGPT_HISTORY.md
 
-This addendum demonstrates that the claims in this specification are not merely theoretical but have been reduced to practice and physically verified on commercial off-the-shelf (COTS) hardware across **FOUR distinct architectural layers** (UEFI, Hypervisor, Kernel, Applications).
+This addendum demonstrates that the claims in this specification are not merely theoretical but have been reduced to practice and physically verified on commercial off-the-shelf (COTS) hardware. **Claims 1-6 require only UEFI+Kernel layers; hypervisor layer is optional and may be filed as a separate divisional.**
 
 **Market Implications:**
 - UEFI layer: Universal (every computer boots through firmware)
