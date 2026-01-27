@@ -285,3 +285,37 @@ Added Gemini Option A defense (UEFI architecture-independence):
 ### V21.2 Node Results
 All 5 nodes: 5/5 tests passed ✅
 
+
+---
+
+## V22 Validation: All Examiner Fixes (2026-01-27T19:38:00Z)
+
+### V22 Changes from Parallel Session
+```
+GEMINI FIX (Option C - Estoppel Defense):
+- Changed 'not claimed herein' → 'exemplary embodiment'
+- Added 'claims priority over ALL virtualized environments'
+
+CHATGPT FIXES:
+- δ_c normalization: Fixed pseudocode to normalize before comparison
+- PSI ratio: Added explicit formula and /proc/ternary/state definition
+- /proc interface: Added 'state' file to exposed interface list
+```
+
+### V22 Specific Tests: 35/35 (7 tests × 5 nodes)
+| Category | Test | Status |
+|----------|------|--------|
+| Gemini Estoppel | 'not claimed' → 'exemplary embodiment' | ✅ |
+| Gemini Priority | 'claims priority over all virtualized environments' | ✅ |
+| Gemini Method | 'method-based (not implementation-specific)' | ✅ |
+| ChatGPT δ_c | NORMALIZE before comparing to δ_c | ✅ |
+| ChatGPT PSI | psi_ratio = psi_deferrals/(decisions+psi_deferrals) | ✅ |
+| ChatGPT /proc | /proc/ternary/state added (9 entries total) | ✅ |
+| ChatGPT Format | state as floating-point [0.0, 1.0] | ✅ |
+
+### V22 Full Validation: 50/50 (10 tests × 5 nodes)
+All 7 claims validated across all 5 nodes.
+
+### V22 Node Results
+All 5 nodes: ✅ ALL V22 EXAMINER FIXES VALIDATED
+
