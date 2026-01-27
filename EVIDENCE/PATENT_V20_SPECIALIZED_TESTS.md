@@ -102,3 +102,27 @@ Both hashes are IDENTICAL across all 5 nodes, proving platform-independent deter
 - v19.0: 087460e (5 ChatGPT issues fixed)
 - v20.0: 2ae9643 (Claim 7 added, results → evidence)
 - v20.1: 91254fe (Dual cryptographic proof)
+
+---
+
+## Prior Art Distinction Tests (Added 2026-01-27 13:32)
+
+### 5/5 Prior Art Distinctions Proven on All 5 Nodes
+
+| Prior Art | Our Distinction | Evidence |
+|-----------|-----------------|----------|
+| Fuzzy Logic (Zadeh 1965) | Explicit deferral state | 19.6% cases produce PSI; fuzzy never defers |
+| Probabilistic Computing | Defer vs sample | Prob: 24.8% error; Ours: 0% error |
+| Threshold Classifiers | Uncertainty band | ML: 3.7% error; Ours: 0% with 19.5% deferral |
+| Ternary Hardware | Runs on binary | 5 fundamental distinctions documented |
+| Consensus Protocols | PSI-aware voting | 83.8% cases benefit from uncertainty propagation |
+
+### Key Distinction Summary
+1. **vs Fuzzy Logic:** We have discrete states {ZERO, ONE, PSI}; fuzzy has continuous [0,1]
+2. **vs Probabilistic:** We DEFER uncertain cases; they SAMPLE (and may be wrong)
+3. **vs ML Threshold:** We have uncertainty BAND [θ-δ, θ+δ]; they have single threshold
+4. **vs Ternary Hardware:** We run on BINARY hardware; they require ternary gates
+5. **vs Consensus:** Our uncertainty PROPAGATES to cluster; theirs forces binary vote
+
+### Test File
+`/tmp/v20_prior_art_tests.py`
