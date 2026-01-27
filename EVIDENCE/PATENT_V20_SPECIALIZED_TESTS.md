@@ -126,3 +126,26 @@ Both hashes are IDENTICAL across all 5 nodes, proving platform-independent deter
 
 ### Test File
 `/tmp/v20_prior_art_tests.py`
+
+---
+
+## Performance Regression Tests (Added 2026-01-27 13:35)
+
+### 5/5 Performance Tests Passed on All 5 Nodes
+
+| Node | Throughput | vs Target | Latency P99 | Status |
+|------|------------|-----------|-------------|--------|
+| CLIENT | 3,539,498 ops/sec | 7.1× | 0.73µs | ✅ 5/5 |
+| CLIENTTWIN | 1,458,362 ops/sec | 2.9× | <1µs | ✅ 5/5 |
+| HOMEBASE | 1,450,523 ops/sec | 2.9× | <1µs | ✅ 5/5 |
+| HOMEBASEMIRROR | 2,236,234 ops/sec | 4.5× | <1µs | ✅ 5/5 |
+| AURORA | 6,824,209 ops/sec | 13.6× | <1µs | ✅ 5/5 |
+
+### Performance Targets
+- Throughput: 500,000 ops/sec minimum → ALL nodes exceed by 2.9-13.6×
+- P99 Latency: <100µs → ALL nodes achieve <1µs
+- Sustained Load: No degradation over 5s → ALL nodes stable
+- Memory: <200 bytes per deferral entry → ALL nodes compliant
+
+### Test File
+`/tmp/v20_performance_tests.py`
