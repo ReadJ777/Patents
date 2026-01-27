@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v23.0)  
+**Prepared:** January 27, 2026 (v22.4)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -753,191 +753,101 @@ ZIME "Psi-Uncertainty" (Ψ) is **unrelated** to Linux Pressure Stall Information
 ## CLAIMS
 
 ### Claim 1: UEFI Firmware Integration with Reserved Memory Handoff
-### NOVELTY STATEMENT (Responding to Examiner §102/§103 Concerns)
+**Architecture Scope:** UEFI specification is architecture-independent (x86, ARM, RISC-V, future architectures). This claim applies to ANY platform implementing UEFI 2.0+ specification. The boot sequence ownership occurs BEFORE CPU instruction set matters, making architecture-specific attacks irrelevant.
 
-**What This Invention Is NOT:**
-- NOT merely using UEFI tables to pass data (UEFI is the delivery mechanism, not the invention)
-- NOT merely weighted voting (prior art weights by NODE RELIABILITY; we weight by CLASSIFICATION CONFIDENCE)
-- NOT merely trit encoding on binary hardware (prior art encodes; we define OPERATIONAL SEMANTICS)
-- NOT merely CPU frequency scaling (prior art scales by UTILIZATION; we scale by UNCERTAINTY)
+A method for initializing ternary computing capabilities at firmware level comprising:
+- (a) A UEFI application that allocates EfiReservedMemoryType memory (survives ExitBootServices) for Psi-Uncertainty storage before OS load
+- (b) A TERNARY_CONFIG structure stored in UEFI Configuration Table containing: Magic (0x5A494D45), Version, PsiThreshold (default 0.5), PsiDelta (default 0.05), PoolPhysAddr, PoolSize
+- (c) Physical address registration in system memory map for kernel discovery
+- (d) Kernel parser that reads Configuration Table via gTernaryGuid to inherit ternary state. **Kernel Binding:** The primary embodiment uses Linux; the method applies to any UEFI-compatible OS.
+- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** Validation is satisfied when the built-in driver (CONFIG_ZIME_TERNARY=y) creates `/proc/ternary/config` during kernel init, before PID 1 userspace. **Proof of UEFI Inheritance:** `/proc/ternary/config` exposes the UEFI-inherited values (psi_threshold, psi_delta, pool_phys_addr) that match the TERNARY_CONFIG structure from step (b). This is the ONLY path that satisfies the boot-time claim.
 
-**What This Invention IS:**
-A novel ternary classification system where the third state Ψ (Psi-Uncertainty) represents **ACTIONABLE DEFERRAL** that triggers measurably different system behavior, creating a feedback loop between classification uncertainty and resource allocation that no prior art implements.
-
-**Evidence of Non-Obviousness:**
-- 30+ years of Linux kernel development (30M+ lines): NO Ψ-state implementation
-- 35+ years of Windows kernel development: NO Ψ-state implementation  
-- Every hypervisor ever written (KVM, Hyper-V, VMware, Xen): NO uncertainty-aware scheduling
-- If this were "obvious to a skilled kernel developer," it would exist. It does not.
-
-**Measured Technical Improvements (§101 Alice Step 2B Satisfaction):**
-- 19.6% energy savings (measured in joules via RAPL)
-- 43.4% error reduction (measured accuracy improvement)
-- 693ns average classification latency
-- 3.5M+ operations per second throughput
-
----
-
-**Platform Scope:** x86-64 Linux systems with UEFI 2.0+ firmware. Other architectures (ARM, RISC-V) are future work, not claimed herein.
-
-A computer-implemented ternary classification system comprising:
-
-**(a) Dynamic Classification Function:** A classification function that maps input values to one of three states {0, Ψ, 1} based on configurable runtime parameters θ (threshold) and δ (uncertainty band width), wherein:
-   - values with confidence ≤ θ-δ map to state 0 (BINARY_0)
-   - values with confidence ≥ θ+δ map to state 1 (BINARY_1)
-   - values with confidence within (θ-δ, θ+δ) map to state Ψ (Psi-Uncertainty)
-
-   **Prior Art Distinction:** Prior ternary systems (Setun, Łukasiewicz logic, WO2016082081A1) use STATIC encoding where the third value is a fixed placeholder. This invention uses DYNAMIC classification where θ and δ are configurable at runtime, and Ψ triggers ACTIONABLE system responses.
-
-**(b) Actionable Deferral Semantics:** Wherein state Ψ is not merely an "unknown" placeholder but triggers measurably different system behavior including:
-   - Queueing the decision for later resolution (DeferralQueue)
-   - Reducing computational resource allocation (CPU frequency scaling)
-   - Requesting additional input before commitment (consensus quorum)
-   - Incrementing operational counters (psi_deferrals)
-
-   **Prior Art Distinction:** Prior ternary encodings treat the third state identically to 0 or apply heuristic guessing. This invention defines Ψ as an operational state with specific system-level consequences.
-
-**(c) PSI Ratio Feedback Metric:** A real-time metric computed as `psi_ratio = psi_deferrals / (decisions_committed + psi_deferrals)` that quantifies system uncertainty level and drives resource allocation decisions.
-
-   **Prior Art Distinction:** No prior operating system exposes a "classification uncertainty ratio" that drives power management and scheduling. Linux PSI (Pressure Stall Information) measures RESOURCE STALLS, not CLASSIFICATION UNCERTAINTY.
-
-**(d) Firmware Initialization (Implementation Detail):** The classification parameters (θ, δ) are initialized via UEFI Configuration Table (TERNARY_CONFIG structure with GUID) and inherited by the kernel driver via `/proc/ternary/config`. The UEFI mechanism is the delivery method; the ternary classification semantics are the invention.
-
-**(e) Measured Technical Improvement:** Wherein said system achieves at least 15% energy savings and at least 30% error reduction compared to binary-only classification on identical workloads, as measured by standardized validation harness.
-
-**Note:** This claim is satisfied by the Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) creating `/proc/ternary/config` during early_initcall(). Module-based deployment is a separate development embodiment.
+**Note:** Module-based deployment (insmod) is disclosed in Section 3 as a SEPARATE development/testing embodiment. It does NOT satisfy this boot-time claim. The `/proc/ternary/state` file (PSI ratio) is a runtime metric, distinct from `/proc/ternary/config` (UEFI inheritance proof).
 
 ### Claim 2: Uncertainty-Weighted Distributed Consensus Protocol
-
-**Prior Art Distinction:** Traditional weighted voting (Paxos, Raft, Byzantine consensus) weights by NODE RELIABILITY (is this server trustworthy?). This invention weights by CLASSIFICATION CONFIDENCE (how certain is this specific decision?), operating on Ψ-state values that prior consensus protocols cannot represent.
-
-A protocol for ternary-aware cluster-wide decision consensus comprising:
-- (a) Local ternary evaluation producing BINARY_0, BINARY_1, or PSI_PENDING with quantified **classification confidence** (not node reliability)
-- (b) Confidence-weighted broadcast where vote weight = (1.0 - classification_uncertainty), wherein uncertainty derives from the Ψ classification band, not from node uptime or historical reliability
-- (c) Aggregation where higher-confidence classifications (further from Ψ band) have proportionally more influence on the final decision
-- (d) Consensus margin evaluation using δ_c (consensus-delta): strong consensus when `margin > δ_c`, weak consensus when `margin > δ_c/2`, no consensus otherwise requiring deferral
-- (e) Entropy-based tie-break: when margin = δ_c exactly, the node with lowest Shannon entropy in its recent decision history breaks the tie
-- (f) Partition-safe deferral with explicit "partition_detected" flag triggered by heartbeat timeout (3 missed heartbeats at 500ms interval)
-- (g) Deterministic replay log enabling reproducibility of all Psi-Uncertainty transitions
-
-**Measured Result:** Distributed consensus with Ψ-weighting achieves 23% faster convergence than equal-weight voting on uncertain workloads.
+A protocol for cluster-wide ternary decision consensus comprising:
+- (a) Local evaluation producing BINARY_0, BINARY_1, or PSI_PENDING with quantified uncertainty level
+- (b) Weighted broadcast where vote weight = (1.0 - uncertainty_level)
+- (c) Uncertainty-weighted consensus where higher-confidence nodes have proportionally more influence
+- (d) Consensus margin evaluation using δ_c (consensus-delta, distinct from classification δ): strong consensus when `margin > δ_c`, weak consensus when `margin > δ_c/2` with entropy tie-break, no consensus otherwise
+- (e) Partition-safe deferral with explicit "partition_detected" flag triggered by heartbeat timeout (3 missed heartbeats at 500ms interval)
+- (f) Deterministic replay log enabling reproducibility of all Psi-Uncertainty transitions
 
 ### Claim 3: Error Reduction Measurement System
+A system for measuring and validating error reduction through Psi-Uncertainty deferral comprising:
+- (a) DeferralQueue: A FIFO bounded queue (max capacity configurable, default 100) storing deferred decisions with timestamps
+- (b) ConfidencePipeline: A 4-step processing pipeline:
+    - normalize(raw_sample) → floating-point value in [0.0, 1.0]
+    - ewma(current, previous, α) → exponentially weighted moving average
+    - apply_penalty(confidence, density) → density-adjusted confidence
+    - classify(confidence, θ, δ) → ZERO/ONE/PSI state
+- (c) TimeoutHandler: Mechanism enforcing maximum deferral duration (default 1000ms) with safe fallback to BINARY_0
+- (d) CounterInterface: Atomic counters exposed via /proc/ternary tracking:
+    - decisions_committed (successful resolutions)
+    - psi_deferrals (deferred operations)
+    - timeout_count (forced fallbacks)
+- (e) ValidationHarness: Framework for comparing ternary vs binary systems on identical inputs with ground truth verification
 
-**Prior Art Distinction:** Standard software testing measures correctness. This invention measures the IMPROVEMENT achieved by deferring Ψ-state decisions versus forcing immediate binary choices—a metric that cannot exist without Ψ-state semantics.
+### Claim 4: Binary Hardware Performance Optimization
+A method for achieving production-grade ternary performance on binary hardware comprising:
+- (a) Packed trit encoding storing 16 trits in 32-bit words using 2-bit state encoding: 00=BINARY_0, 01=BINARY_1, 10=PSI_UNCERTAINTY, 11=RESERVED
+- (b) Lazy Psi resolution deferring computation until caller explicitly requests resolution
+- (c) Bit-parallel operations processing 16 trits simultaneously via SIMD-compatible patterns
+- (d) Cache-line-aligned data structures (64-byte alignment) minimizing memory access latency
 
-A system for quantifying error reduction achieved through Psi-Uncertainty deferral comprising:
-- (a) **DeferralQueue:** A FIFO bounded queue (capacity 100, configurable) storing decisions classified as Ψ, with timestamps for timeout enforcement
-- (b) **ConfidencePipeline:** A 4-step processing pipeline transforming raw input to ternary state:
-    - Step 1: normalize(raw_sample) → floating-point value in [0.0, 1.0]
-    - Step 2: ewma(current, previous, α=0.1) → smoothed confidence
-    - Step 3: apply_penalty(confidence, density) → density-adjusted confidence
-    - Step 4: classify(confidence, θ, δ) → ZERO/ONE/PSI state
-- (c) **TimeoutHandler:** Maximum deferral duration (default 1000ms) with safe fallback to BINARY_0 upon timeout
-- (d) **CounterInterface:** Atomic counters exposed via /proc/ternary:
-    - decisions_committed: successful resolutions to 0 or 1
-    - psi_deferrals: operations currently or previously deferred
-    - timeout_count: forced fallbacks due to timeout
-- (e) **ValidationHarness:** Framework comparing ternary system against binary-only system on identical inputs, measuring wrong-decision rate reduction
+### Claim 5: Production-Grade Kernel Integration
+A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-ready ternary computing comprising:
+- (a) /proc/ternary interface exposing: state (PSI ratio as float), psi_threshold, psi_delta, total_attempts, decisions_committed, psi_deferrals, deferral_rate_percent, deferral_timeout_ms, timeout_count
+- (b) Automatic memory pool management using kernel slab allocator
+- (c) Boot-time initialization via early_initcall() ensuring availability during kernel init phase
+- (d) Per-operation logging to kernel ring buffer (dmesg) for debugging
 
-**Measured Result:** 43.4% reduction in wrong-decision rate when Ψ-deferral is enabled versus forced binary classification.
+### Claim 6: Uncertainty-Aware CPU Frequency Scaling
+**Platform Scope:** Linux kernel 5.10+ on x86_64 architecture with CONFIG_CPU_FREQ=y.
 
-### Claim 4: Ternary Lazy Resolution on Binary Hardware
-
-**Prior Art Distinction:** WO2016082081A1 describes ENCODING trits in binary bits. This invention defines LAZY RESOLUTION SEMANTICS—what happens when a Ψ-state value is accessed. Encoding is storage; this is operational behavior.
-
-A method for implementing ternary computation with lazy resolution on binary hardware comprising:
-- (a) **Packed Trit Encoding:** Storing 16 trits in 32-bit words using 2-bit state encoding: 00=BINARY_0, 01=BINARY_1, 10=PSI_UNCERTAINTY, 11=RESERVED
-- (b) **Lazy Ψ Resolution:** When a caller accesses a Ψ-state value:
-    - If resolution is not explicitly requested, return Ψ and increment psi_deferrals
-    - If resolution is forced, wait for additional input or apply timeout fallback
-    - Track resolution latency for performance monitoring
-- (c) **Bit-Parallel Operations:** Processing 16 trits simultaneously via SIMD-compatible bitwise operations, achieving throughput exceeding 1 million operations per second
-- (d) **Cache-Aligned Structures:** 64-byte aligned data structures minimizing memory access latency
-
-**Prior Art Distinction (Lazy Evaluation):** General lazy evaluation defers ANY computation. This invention specifically defers Ψ-state resolution while immediately returning 0 or 1 states—selective deferral based on classification, not generic laziness.
-
-**Measured Result:** 3.5M+ ops/sec on commodity x86-64 hardware, exceeding 500K target by 7×.
-
-### Claim 5: Kernel-Integrated Ternary Subsystem
-
-**Prior Art Distinction:** Linux kernel has /proc interfaces, slab allocators, and logging. This invention creates a NOVEL SUBSYSTEM that no prior kernel implements: a ternary classification engine with Ψ-state tracking. The claim is the SUBSYSTEM, not the kernel facilities it uses.
-
-A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) implementing a ternary classification subsystem comprising:
-- (a) **/proc/ternary Interface:** Exposing classification state and parameters:
-    - `/proc/ternary/state` - PSI ratio as floating-point [0.0, 1.0]
-    - `/proc/ternary/config` - UEFI-inherited θ and δ values (proof of firmware initialization)
-    - `/proc/ternary/psi_threshold` - current threshold value
-    - `/proc/ternary/psi_delta` - current uncertainty band width
-    - `/proc/ternary/decisions_committed` - count of 0/1 resolutions
-    - `/proc/ternary/psi_deferrals` - count of Ψ-state deferrals
-    - `/proc/ternary/deferral_rate_percent` - computed deferral percentage
-    - `/proc/ternary/timeout_count` - count of timeout fallbacks
-- (b) **Memory Management:** Using kernel slab allocator for DeferralQueue entries
-- (c) **Boot-Time Initialization:** via early_initcall() ensuring ternary subsystem availability before PID 1 userspace
-- (d) **Diagnostic Logging:** Per-operation logging to kernel ring buffer (dmesg) with configurable verbosity
-
-**Secondary Consideration:** No Linux kernel version (1991-2026) includes a ternary classification subsystem. If this were "obvious to a competent kernel programmer," it would exist in the 30M+ line codebase. It does not.
-
-**Measured Result:** Subsystem initialization completes in <1ms, classification latency <1µs.
-
-### Claim 6: Uncertainty-Driven Power Management
-
-**Prior Art Distinction:** Linux cpufreq governors (ondemand, conservative, schedutil) scale by CPU UTILIZATION—how busy is the processor? This invention scales by PSI RATIO—how uncertain are the decisions being made? These are fundamentally different metrics measuring different phenomena.
-
-**Key Insight:** A CPU at 100% utilization doing CERTAIN work should run at full speed. A CPU at 20% utilization doing UNCERTAIN work is wasting energy on computations that will likely be deferred. Prior art cannot distinguish these cases; this invention can.
-
-**Platform Scope:** Linux kernel 5.10+ on x86_64 with CONFIG_CPU_FREQ=y.
-
-A method of power management based on classification uncertainty comprising:
-- (a) **Uncertainty Monitoring:** Computing `psi_rate = psi_deferrals / total_attempts` every SAMPLE_INTERVAL (default: 1 second), measuring DECISION UNCERTAINTY not CPU utilization
-- (b) **Power Reduction Trigger:** When `psi_rate > POWER_THRESHOLD` (default: 0.80) sustained for POWER_WINDOW (default: 30 seconds), reduce CPU frequency
-- (c) **Governor Interface:** Setting CPU frequency via Linux cpufreq:
+A method of power management based on sustained Psi-Uncertainty rate comprising:
+- (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`, computed every `SAMPLE_INTERVAL` (default: 1 second)
+- (b) Power reduction threshold: IF `node_psi_rate > POWER_THRESHOLD` (default: 0.80) for `POWER_WINDOW` (default: 30 seconds), reduce CPU frequency
+- (c) CPU frequency scaling via Linux cpufreq governor interface:
+    - Availability check: `test -f /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
     - Set powersave: `echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
     - Set performance: `echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
-- (d) **Frequency Restoration:** When `psi_rate < RESTORE_THRESHOLD` (default: 0.50) for RESTORE_WINDOW (default: 10 seconds), restore "performance" governor
+- (d) Frequency restoration: When `node_psi_rate < RESTORE_THRESHOLD` (default: 0.50) for `RESTORE_WINDOW` (default: 10 seconds), restore governor to "performance"
 
-**Prior Art Distinction (Explicit):**
-| Metric | Linux ondemand | This Invention |
-|--------|----------------|----------------|
-| What it measures | CPU cycles used | Decisions deferred |
-| When to slow down | CPU idle | Decisions uncertain |
-| Novel insight | None | Uncertain work wastes energy |
+**Platform-Specific Power Management (NOT part of claim, for reference only):**
+| Platform | Interface | Method |
+|----------|-----------|--------|
+| Linux + cpufreq | /sys/devices/system/cpu/cpufreq/ | scaling_governor |
+| OpenBSD | sysctl | hw.setperf (0-100%) |
+| Cloud VMs | N/A | Hypervisor-controlled |
 
-**Measured Result:** 19.6% energy savings on uncertain workloads versus utilization-based scaling.
+**Note:** This claim is LIMITED to Linux systems with CONFIG_CPU_FREQ=y. OpenBSD and cloud VMs use platform-specific power management outside the scope of this claim; the core ternary algorithm operates identically on all platforms.
 
 ---
 
-### Claim 7: Hypervisor Uncertainty-Aware Scheduling
-
-**Prior Art Distinction:** Hypervisors (KVM, Hyper-V, VMware, Xen) track VM exits, interrupts, memory faults, and resource contention. NO hypervisor tracks "classification uncertainty ratio" per VM or adjusts scheduling based on how uncertain a VM's decisions are. The CPUID/hypercall/MSR interfaces are delivery mechanisms; the NOVEL METRIC (PSI ratio per VM) is the invention.
-
+### Claim 7: Hypervisor-Level Ternary Integration (Ring -1)
 **Platform Scope:** Linux KVM on x86_64 with Intel VT-x or AMD-V.
 
-A method of hypervisor-level resource management based on per-VM classification uncertainty comprising:
-- (a) **Per-VM Uncertainty Tracking:** Computing PSI ratio for each virtual machine: `vm_psi_ratio = vm_psi_deferrals / vm_total_decisions`
-- (b) **Uncertainty-Based Scheduling:** Adjusting vCPU scheduling priority based on VM PSI state:
-    - High PSI (>0.7): de-prioritize VM, reduce time slice allocation
-    - Low PSI (<0.3): prioritize VM, increase time slice allocation
-- (c) **Memory Optimization:** Flagging "uncertain" memory pages (those accessed during Ψ-state operations) for compression or isolation
-- (d) **Guest Visibility Interface:**
-    - CPUID leaf 0x40000000: ZIME feature flags indicating hypervisor support
-    - KVM hypercall 0x01000001: Query current VM PSI ratio
-    - KVM hypercall 0x01000002: Report guest PSI state to host
-    - KVM hypercall 0x01000003: Request aggregated cluster PSI
-    - KVM hypercall 0x01000004: Trigger power management adjustment
+**Canonical Interface Definition:** The hypervisor ABI comprises:
+- **Primary (vendor-neutral):** CPUID leaf 0x40000000 for hypervisor detection with ZIME feature flags; KVM hypercalls 0x01000001-0x01000004 for PSI state query, update, aggregate, and power management
+- **Optional (vendor-specific):** MSR addresses (e.g., AMD vendor space 0xC0010300-0xC001030F) as detailed in the Hypervisor Ring -1 Addendum; these are embodiment examples, not required interfaces
 
-**Prior Art Distinction (Explicit):**
-| Hypervisor | What It Tracks | What This Invention Tracks |
-|------------|----------------|---------------------------|
-| KVM | VM exits, MSR access | PSI ratio per VM |
-| Hyper-V | Synthetic timers, enlightenments | PSI ratio per VM |
-| VMware | Resource contention | PSI ratio per VM |
-| Xen | Credit scheduling | PSI ratio per VM |
+A method of integrating Psi-Uncertainty state management at the hypervisor layer comprising:
+- (a) **Event Monitoring:** Tracking VM exit events and interrupt frequencies; high exit frequency indicates high uncertainty state
+- (b) **Density Computation:** Computing transition density metric from raw VM event counts, producing normalized PSI score per virtual machine
+- (c) **Scheduling Adjustment:** Adjusting vCPU scheduling priority based on PSI state; de-prioritizing high-uncertainty VMs until they stabilize
+- (d) **Memory Optimization:** Flagging "uncertain" memory pages for compression or isolation based on access pattern volatility
+- (e) **Guest Visibility:** Providing ternary state visibility to guest operating systems via vendor-neutral interface:
+    - Primary: CPUID leaf 0x40000000 (hypervisor detection) with ZIME feature flags
+    - Primary: KVM hypercalls (0x01000001-0x01000004) for state query/update
+    - Optional: Shared memory region (64-byte ZIMEPSI structure)
+    - Optional: MSR interface (vendor-specific address space)
 
-**Secondary Consideration:** Show me ONE hypervisor with Ψ-uncertainty tracking. None exists.
-
-**Measured Result:** VMs with uncertainty-aware scheduling show 15% reduction in wasted CPU cycles during high-uncertainty phases.
+**Vendor Neutrality:**
+| Interface | Intel | AMD | Status |
+|-----------|-------|-----|--------|
+| CPUID leaf 0x40000000 | ✅ Same | ✅ Same | Vendor-neutral |
+| KVM hypercalls | ✅ Same | ✅ Same | Vendor-neutral |
 | Shared memory | ✅ Same | ✅ Same | Vendor-neutral |
 | MSR addresses | 0x000004xx | 0xC001xxxx | Vendor-specific (optional) |
 
