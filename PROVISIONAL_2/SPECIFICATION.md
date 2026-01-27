@@ -379,7 +379,7 @@ static int __init zime_ternary_init(void)
                         zime_config->psi_threshold, zime_config->psi_delta);
                 // Map reserved memory pool - memremap for RAM, not ioremap for MMIO
                 zime_pool = memremap(zime_config->pool_phys_addr, zime_config->pool_size, MEMREMAP_WB);
-                // Create /proc/ternary interface (available before init starts)
+                // Create /proc/ternary interface (available during kernel init)
                 zime_create_proc_interface();
                 return 0;
             }
@@ -403,7 +403,7 @@ early_initcall(zime_ternary_init);
 4. Built-in driver executes via early_initcall() during kernel init
 5. efi.config_table[] searched at early boot (before init/systemd)
 6. Reserved memory mapped via memremap() (for RAM, not ioremap for MMIO)
-7. /proc/ternary created and available before init starts
+7. /proc/ternary created during kernel init (before PID 1 userspace)
 ```
 **This is the ONLY path that satisfies boot-time claims.** The kernel driver MUST be built-in (=y) not modular (=m) to inherit UEFI state at boot. The `early_initcall()` macro ensures execution during kernel initialization, before any userspace process.
 
@@ -661,7 +661,7 @@ Critical proof: **Ternary software on binary hardware beats binary logic** for r
 
 ### E. Production Deployment and Monitoring
 
-Kernel module deployed to 3 production nodes with monitoring:
+Built-in kernel driver deployed to 3 production nodes with monitoring:
 
 **Deployment Architecture:**
 ```
@@ -781,7 +781,7 @@ A method for achieving production-grade ternary performance on binary hardware c
 A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-ready ternary computing comprising:
 - (a) /proc/ternary interface exposing: psi_threshold, psi_delta, total_attempts, decisions_committed, psi_deferrals, deferral_rate_percent
 - (b) Automatic memory pool management using kernel slab allocator
-- (c) Boot-time initialization via early_initcall() ensuring availability before userspace
+- (c) Boot-time initialization via early_initcall() ensuring availability during kernel init phase
 - (d) Per-operation logging to kernel ring buffer (dmesg) for debugging
 - (e) <2% CPU overhead verified via perf stat measurements
 - (f) Multi-node deployment with measured 100% uptime over 168M+ operations
@@ -790,10 +790,19 @@ A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-read
 A method of distributed power management based on sustained uncertainty comprising:
 - (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`
 - (b) Threshold detection: IF `node_psi_rate > HIBERNATE_THRESHOLD` (default: 0.90) for `HIBERNATE_WINDOW` (default: 60 seconds), node is candidate for hibernation
-- (c) Workload redistribution: Route pending decisions to nodes with `psi_rate < 0.50` (confident nodes)
-- (d) Power state transition: Hibernate node enters C6/C7 sleep state, reducing power consumption by 90%+
-- (e) Wake condition: Node wakes on input distribution shift (detected via inter-node heartbeat carrying input statistics) or explicit MSR_ZIME_WAKE_NODE write
+- (c) Workload redistribution: Route pending decisions to nodes with `psi_rate < 0.50` (confident nodes) via cluster coordinator
+- (d) Power state transition mechanism:
+    - Linux: Write to `/sys/devices/system/cpu/cpuN/cpuidle/stateX/disable` to enable deep C-states
+    - x86: Use `monitor/mwait` instruction with C-state hint (MWAIT_CSTATE_C6 = 0x20)
+    - Fallback: `echo "freeze" > /sys/power/state` for platform-level suspend
+- (e) Wake condition via MSR_ZIME_WAKE_NODE (0xC0010310):
+    - Bit 0: Wake request flag (set by coordinator node via IPI or network message)
+    - Bits 1-7: Reserved
+    - Bits 8-15: Reason code (0x01=input_shift, 0x02=quorum_needed, 0x03=explicit_wake)
+    - On wake, node reads MSR to determine reason and resumes processing
 - (f) Computational safety: Hibernation only permitted when `confident_node_count >= QUORUM` (default: 2), ensuring cluster can still make decisions
+
+**Implementation Note:** The coordinator node (lowest node_id with psi_rate < 0.50) manages hibernation decisions. Wake signals are sent via UDP broadcast to port 5959 (ZIME_WAKE_PORT), triggering the target node's network interface wake-on-LAN or systemd socket activation.
 
 **Rationale:** If a node cannot decide anything with confidence, forcing it to guess wastes power and produces errors. This claim extends per-operation deferral to per-node hibernation—uncertainty-aware power gating at cluster scale.
 

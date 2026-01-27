@@ -304,27 +304,20 @@ static u64 zime_read_psi_state(void) {
 
 ---
 
-## PATENT CLAIMS STRENGTHENED
+## HYPERVISOR-SPECIFIC CLAIMS (SEPARATE FROM MAIN SPECIFICATION)
 
-### Original Claims Enhanced
+**NOTE:** This addendum describes a SEPARATE INVENTION intended for divisional filing if restriction is required. The claims below are NOT incorporated into the main specification Claims 1-6. They stand alone as hypervisor-specific embodiments.
 
-**Claim 1 (System Architecture):**
-- NOW INCLUDES: "wherein the ternary logic system is implemented at the hypervisor layer (VMX Root Mode (Ring -1 equivalent))"
-- BENEFIT: One installation serves thousands of VMs
-
-**Claim 5 (Resource Management):**
-- NOW INCLUDES: "virtual machine scheduling based on PSI state density"
-- BENEFIT: Cloud-scale efficiency optimization
-
-**New Claim 7 (Hypervisor Integration):**
+### Hypervisor Claim H1 (Hypervisor Integration - DIVISIONAL)
 ```
 A method of managing virtual machine resources comprising:
 a) Monitoring VM exit events and interrupt frequencies
 b) Computing a transition density metric (PSI state)
 c) Adjusting VCPU scheduling priority based on PSI
 d) Dynamically optimizing memory allocation using ternary states
-e) Providing ternary state visibility to guest operating systems
+e) Providing ternary state visibility to guest operating systems via MSR/CPUID/hypercall
 ```
+**Scope:** Linux KVM on x86-64 with Intel VT-x or AMD-V only.
 
 ### Prior Art Differentiation
 
