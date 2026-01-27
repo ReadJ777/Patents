@@ -172,3 +172,49 @@ Both hashes are IDENTICAL across all 5 nodes, proving platform-independent deter
 
 ### Test File
 `/tmp/v20_prototypes.py`
+
+---
+
+## V21 Validation: 3 Surgical Fixes (2026-01-27T14:05:00Z)
+
+### V21 Changes from Parallel Session
+```
+FIX 1: δ_c DOMAIN BINDING - Explicit normalized domain [0.0, 1.0]
+FIX 2: /proc SATISFACTION EVENT - 30s timing with exact validation criteria
+FIX 3: CLAIM 7 CANONICAL INTERFACE - Primary (CPUID/hypercalls) vs Optional (MSRs)
+```
+
+### V21 Specific Tests: 40/40 (8 tests × 5 nodes)
+| Test | Description | Status |
+|------|-------------|--------|
+| FIX1a | All margins in normalized domain [0.0, 1.0] | ✅ |
+| FIX1b | δ_c comparisons valid: strong (>0.1), weak (>0.05) | ✅ |
+| FIX2a | /proc/ternary/state returns valid PSI ratio | ✅ |
+| FIX2b | Satisfaction timeout correctly set to 30s | ✅ |
+| FIX3a | CPUID leaf: 0x40000000 (vendor-neutral) | ✅ |
+| FIX3b | 4 hypercalls defined (0x01000001-0x01000004) | ✅ |
+| FIX3c | MSRs are OPTIONAL: 0xC0010100-0xC0010103 | ✅ |
+| FIX3d | Canonical hierarchy: Primary → Optional | ✅ |
+
+### V21 5-Node Cryptographic Proof
+```
+╔══════════════════════════════════════════════════════════════════════════════╗
+║  CLIENT:         55133a5ab76df0781cc9502fd73f1af2  ✅                        ║
+║  CLIENTTWIN:     55133a5ab76df0781cc9502fd73f1af2  ✅                        ║
+║  HOMEBASE:       55133a5ab76df0781cc9502fd73f1af2  ✅                        ║
+║  HOMEBASEMIRROR: 55133a5ab76df0781cc9502fd73f1af2  ✅                        ║
+║  AURORA:         55133a5ab76df0781cc9502fd73f1af2  ✅                        ║
+╠══════════════════════════════════════════════════════════════════════════════╣
+║  IDENTICAL HASH = PERFECT DETERMINISM ACROSS HETEROGENEOUS PLATFORMS        ║
+╚══════════════════════════════════════════════════════════════════════════════╝
+```
+
+### V21 Node Results
+| Node | Platform | Tests | Hash |
+|------|----------|-------|------|
+| CLIENT | Linux x86_64 | 8/8 ✅ | 55133a5ab... |
+| CLIENTTWIN | Linux x86_64 | 8/8 ✅ | 55133a5ab... |
+| HOMEBASE | OpenBSD 7.8 | 8/8 ✅ | 55133a5ab... |
+| HOMEBASEMIRROR | OpenBSD 7.8 | 8/8 ✅ | 55133a5ab... |
+| AURORA | Linux (Linode) | 8/8 ✅ | 55133a5ab... |
+
