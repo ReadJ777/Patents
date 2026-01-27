@@ -1,0 +1,118 @@
+{
+  "version": "v24.1",
+  "timestamp": "2026-01-27T17:07:56.254298",
+  "platform": "Linux x86_64",
+  "tests_passed": 6,
+  "tests_total": 7,
+  "evidence_hash": "728dd2a33ba2f359",
+  "results": [
+    {
+      "test_name": "Classification Accuracy",
+      "claim_number": 1,
+      "passed": true,
+      "measurement": "100.0% accuracy (7/7)",
+      "hardware_effect": "Dynamic \u03b8\u00b1\u03b4 classification with runtime-configurable parameters",
+      "details": {
+        "tests_passed": 7,
+        "tests_total": 7,
+        "accuracy_percent": 100.0
+      }
+    },
+    {
+      "test_name": "Throughput Benchmark",
+      "claim_number": 4,
+      "passed": false,
+      "measurement": "86,335 ops/sec, 11583 ns latency",
+      "hardware_effect": "SIMD-compatible bit operations, cache-aligned structures",
+      "details": {
+        "operations": 100000,
+        "elapsed_seconds": 1.1582770129898563,
+        "ops_per_second": 86335.13302821261,
+        "latency_ns": 11582.770129898563,
+        "target_ops_per_sec": 500000,
+        "exceeds_target": false
+      }
+    },
+    {
+      "test_name": "Error Reduction Measurement",
+      "claim_number": 3,
+      "passed": true,
+      "measurement": "100.0% error reduction",
+      "hardware_effect": "Prevented wrong computations = saved energy",
+      "details": {
+        "binary_wrong": 1100,
+        "zime_wrong": 0,
+        "zime_deferred": 2100,
+        "error_reduction_percent": 100.0,
+        "total_tests": 10000
+      }
+    },
+    {
+      "test_name": "RAPL Energy Measurement",
+      "claim_number": 6,
+      "passed": true,
+      "measurement": "55.7994 \u00b5J per operation",
+      "hardware_effect": "Read Intel RAPL MSRs for energy consumption",
+      "details": {
+        "rapl_available": true,
+        "start_energy_uj": 186574673978.0,
+        "end_energy_uj": 186580253920.0,
+        "total_joules": 5.579942,
+        "operations": 100000,
+        "uj_per_op": 55.79942
+      }
+    },
+    {
+      "test_name": "CPU Frequency Interface",
+      "claim_number": 6,
+      "passed": true,
+      "measurement": "2.49 GHz, governor=schedutil",
+      "hardware_effect": "Read cpufreq sysfs interface",
+      "details": {
+        "cpufreq_available": true,
+        "current_freq_khz": 2487272,
+        "current_governor": "schedutil",
+        "available_governors": [
+          "conservative",
+          "ondemand",
+          "userspace",
+          "powersave",
+          "performance",
+          "schedutil"
+        ]
+      }
+    },
+    {
+      "test_name": "Memory Allocation",
+      "claim_number": 5,
+      "passed": true,
+      "measurement": "2268 kB for DeferralQueue",
+      "hardware_effect": "Physical RAM pages allocated via kernel allocator",
+      "details": {
+        "mem_free_before_kb": 114572,
+        "mem_free_after_kb": 112304,
+        "mem_used_kb": 2268
+      }
+    },
+    {
+      "test_name": "Kernel Module Integration",
+      "claim_number": 5,
+      "passed": true,
+      "measurement": "/proc/ternary with 3 files",
+      "hardware_effect": "Kernel slab allocator, early_initcall(), IRQ framework",
+      "details": {
+        "loaded": true,
+        "proc_files": [
+          "state",
+          "config",
+          "status"
+        ],
+        "status": {
+          "state": "# ZIME Ternary Runtime State (v22.4 Patent Interface)\npsi_ratio=0.000000\ndecisions_committed=0\npsi_deferrals=0\ncurrent_delta=0.050000\ncurrent_threshold=0.500000",
+          "config": "# ZIME Ternary Configuration (v22.4 Patent Interface)\n# UEFI-inherited parameters - proof of boot-time chain\npsi_threshold=0.500000\npsi_delta=0.050000\npool_phys_addr=0x100000000\ndelta_min=0.010000\ndelta_max=0.250000\ndelta_c_min=0.010000\ndelta_c_max=0.500000",
+          "status": "ZIME Ternary Scheduler Status\n==============================\nGlobal Psi-Delta: 0.050000\n\nPID      COMM             STATE        PSI_VALUE    TRANSITIONS \n-------- ---------------- ------------ ------------ ------------"
+        }
+      }
+    }
+  ]
+}
