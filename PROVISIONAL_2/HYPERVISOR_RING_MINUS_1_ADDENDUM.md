@@ -1,12 +1,12 @@
 # RING -1 HYPERVISOR LAYER - PATENT ADDENDUM
 ## Ternary Computing at the Deepest Software Layer
 
-**Prepared:** January 27, 2026 (v24.4.5 — §103 Argument Hygiene)  
+**Prepared:** January 27, 2026 (v24.4.6 — Technical Consistency Fixes)  
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
 **Status:** Proof-of-Concept Implemented (894 lines)  
 **Patent Reference:** USPTO #63/967,611 (Enhancement)  
 **Market Impact:** Cloud computing ($200B+ market via AWS/Azure)  
-**Version:** v24.4.5 (synchronized with SPECIFICATION.md)  
+**Version:** v24.4.6 (synchronized with SPECIFICATION.md)  
 
 **SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is the **enabling disclosure** on Linux KVM with Intel VT-x or AMD-V. 
 
@@ -85,7 +85,7 @@ Linux KVM Subsystem Files Modified:
 ├── arch/x86/kvm/vmx/vmx.c          # VMX exit handler hooks
 │   └── vmx_handle_exit() → calls ternary_analyze_exit()
 ├── arch/x86/kvm/x86.c              # x86 KVM core
-│   └── kvm_emulate_cpuid() → adds CPUID leaf 0x80000100
+│   └── kvm_emulate_cpuid() → adds CPUID leaves 0x40000000-01
 │   └── kvm_set_msr_common() → handles MSR 0xC0010300-01
 ├── virt/kvm/kvm_main.c             # KVM core
 │   └── kvm_vcpu_ioctl() → adds KVM_IOCTL_ZIME_STATE
@@ -136,7 +136,15 @@ case MSR_ZIME_PSI_STATE:   // 0xC0010300
 3. **CPUID Handler** (`x86.c` modification):
 ```c
 // Added to kvm_emulate_cpuid() at arch/x86/kvm/x86.c:1200
-if (function == 0x80000100 && kvm_has_zime_cap(vcpu->kvm)) {
+// Primary: Standard hypervisor CPUID range (0x40000000-0x400000FF)
+if (function == 0x40000000 && kvm_has_zime_cap(vcpu->kvm)) {
+    *eax = 0x40000001;        // Max supported leaf
+    *ebx = 0x454D495A;        // "ZIME" signature
+    *ecx = 0x454D495A;
+    *edx = 0x454D495A;
+    return;
+}
+if (function == 0x40000001 && kvm_has_zime_cap(vcpu->kvm)) {
     *eax = ZIME_VERSION;      // 0x00010000
     *ebx = ZIME_FEATURES;     // MSR=1, Hypercall=2, SHM=4
     *ecx = ZIME_MAX_NODES;    // Cluster size limit
@@ -250,9 +258,15 @@ Guest OS configures threshold:
 
 **2. CPUID Leaf Interface (Feature Discovery)**
 ```
-CPUID Leaf: 0x80000100 (vendor-extended, hypervisor range)
+PRIMARY: CPUID Leaf 0x40000000 (standard hypervisor range)
 
-Input: EAX = 0x80000100
+Input: EAX = 0x40000000
+Output:
+    EAX = Maximum hypervisor leaf supported (≥ 0x40000001)
+    EBX:EDX:ECX = "ZIMEZIMEZIME" signature (0x454D495A, 0x454D495A, 0x454D495A)
+
+CPUID Leaf 0x40000001 (ZIME capabilities):
+Input: EAX = 0x40000001
 Output:
     EAX = ZIME_VERSION (e.g., 0x00010000 for v1.0)
     EBX = FEATURES_SUPPORTED bitmask
@@ -263,9 +277,13 @@ Output:
     ECX = Max supported nodes in cluster
     EDX = Reserved
 
+ALTERNATIVE EMBODIMENT: CPUID Leaf 0x80000100 (AMD vendor-extended range)
+    Same output format as 0x40000001, for hypervisors that prefer vendor space.
+
 Guest OS feature detection:
-    CPUID 0x80000100
-    IF EAX != 0 → ZIME ternary hypervisor present
+    CPUID 0x40000000
+    IF EBX:EDX:ECX == "ZIMEZIMEZIME" → ZIME ternary hypervisor present
+    CPUID 0x40000001 for capabilities
     Test EBX bits for available interfaces
 ```
 
@@ -298,9 +316,14 @@ HC_PSI_HIBERNATE (0x01000004):
     Output: RAX = Granted power state (may differ if workload active)
 
 Guest invocation (Linux KVM):
-    mov $100, %eax    ; Hypercall number
-    vmcall            ; Trigger VM exit
+    mov $0x01000001, %eax    ; HC_PSI_REGISTER hypercall number
+    vmcall                   ; Trigger VM exit
     ; Result in %rax
+    
+    ; Alternative for other hypercalls:
+    mov $0x01000002, %eax    ; HC_PSI_UPDATE
+    mov $psi_value, %rbx     ; PSI ratio in RBX
+    vmcall
 ```
 
 ### Guest Integration Example (Linux Kernel Module)
@@ -309,11 +332,15 @@ Guest invocation (Linux KVM):
 static u64 zime_read_psi_state(void) {
     u32 eax, ebx, ecx, edx;
     
-    // Check if ZIME hypervisor present
-    cpuid(0x80000100, &eax, &ebx, &ecx, &edx);
-    if (eax == 0) return -ENODEV;  // Not running under ZIME hypervisor
+    // Check if ZIME hypervisor present (standard hypervisor leaf)
+    cpuid(0x40000000, &eax, &ebx, &ecx, &edx);
+    // Check for "ZIME" signature in EBX
+    if (ebx != 0x454D495A) return -ENODEV;  // Not running under ZIME hypervisor
     
-    // Read PSI state via MSR if available
+    // Get ZIME capabilities
+    cpuid(0x40000001, &eax, &ebx, &ecx, &edx);
+    
+    // Read PSI state via MSR if available (bit 0 of EBX)
     if (ebx & 0x1) {
         return rdmsrl(0xC0010300);
     }
