@@ -4,8 +4,14 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v24.4.2)  
+**Prepared:** January 27, 2026 (v24.4.3 — Addressing Examiner Feedback for 9+ Rating)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
+
+**v24.4.3 Improvements:**
+- Section 7A: Claim scope narrowing (NOT claiming "all ternary computing")
+- Boot-time inheritance chain documentation (UEFI → kernel → hypervisor)
+- Enhanced system-level vs app-level distinction
+- Specific interfaces emphasized (/proc, MSR, hypercall)
 
 ---
 
@@ -807,7 +813,31 @@ ZIME "Psi-Uncertainty" (Ψ) is **unrelated** to Linux Pressure Stall Information
 
 ## CLAIMS
 
-### SECTION 7A: HARDWARE IMPROVEMENT EVIDENCE (§101 Alice Step 2B Defense)
+### SECTION 7A: CLAIM STRUCTURE — AVOIDING OVERBREADTH
+
+**This patent does NOT claim "all ternary computing on binary hardware."**
+
+**We claim SPECIFIC, NARROW implementations:**
+
+| Claim | Specific Scope | NOT Claiming |
+|-------|---------------|--------------|
+| **Claim 1** | Classification/deferral control loop with θ±δ | All ternary encoding |
+| **Claim 2** | Confidence-weighted consensus protocol | All voting systems |
+| **Claim 3** | Error reduction measurement via DeferralQueue | All error handling |
+| **Claim 4** | Lazy resolution with 2-bit encoding | All lazy evaluation |
+| **Claim 5** | /proc/ternary kernel interface | All kernel modules |
+| **Claim 6** | PSI-ratio-driven cpufreq control | All power management |
+| **Claim 7** | Per-VM PSI tracking via hypercalls | All hypervisor scheduling |
+
+**The claims are TIED TO:**
+1. **Specific control loops** (not abstract concepts)
+2. **Specific interfaces** (/proc, MSR, hypercall)
+3. **Specific measurements** (RAPL joules, cpufreq kHz)
+4. **Specific thresholds** (θ ∈ [0.1, 0.9], δ ∈ [0.01, 0.25])
+
+---
+
+### SECTION 7B: HARDWARE IMPROVEMENT EVIDENCE (§101 Alice Step 2B Defense)
 
 **This invention achieves MEASURABLE PHYSICAL IMPROVEMENTS on EXISTING HARDWARE:**
 
@@ -848,9 +878,57 @@ This is analogous to how disk caching (software) improves storage performance (h
 - NOT merely weighted voting (prior art weights by NODE RELIABILITY; we weight by CLASSIFICATION CONFIDENCE)
 - NOT merely trit encoding on binary hardware (prior art encodes; we define OPERATIONAL SEMANTICS)
 - NOT merely CPU frequency scaling (prior art scales by UTILIZATION; we scale by UNCERTAINTY)
+- **NOT application-level "abstention" or "reject option"** — This is SYSTEM-LEVEL resource control
+
+**CRITICAL DISTINCTION FROM "ABSTENTION" PRIOR ART:**
+
+Prior art "abstention" or "reject option" patterns:
+- Application decides to skip processing
+- No system-level resource changes
+- No hardware feedback loop
+- No boot-time inheritance
+
+**ZIME Ψ-deferral is FUNDAMENTALLY DIFFERENT:**
+- **SYSTEM-LEVEL**: Ψ triggers kernel scheduler priority changes, CPU frequency scaling, memory allocation patterns
+- **HARDWARE FEEDBACK**: Ψ ratio drives RAPL-measured power reduction
+- **BOOT-TIME INHERITANCE**: UEFI → kernel → hypervisor chain preserves Ψ configuration
+- **RESOURCE CONTROL LOOP**: Ψ → PSI ratio → cpufreq governor → physical frequency change
+
+This is NOT "the application decides not to answer." This is "the SYSTEM reallocates resources based on classification uncertainty."
 
 **What This Invention IS:**
 A novel ternary classification system where the third state Ψ (Psi-Uncertainty) represents **ACTIONABLE DEFERRAL** that triggers measurably different system behavior, creating a feedback loop between classification uncertainty and resource allocation that no prior art implements.
+
+**THE BOOT-TIME INHERITANCE CHAIN (Unique to ZIME):**
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  UEFI FIRMWARE (Ring -1)                                                │
+│  ├── TernaryInit.efi loads at boot                                      │
+│  ├── Allocates TERNARY_CONFIG in EfiReservedMemoryType                  │
+│  ├── Sets θ=0.5, δ=0.05 (or custom)                                     │
+│  └── Registers GUID for kernel discovery                                │
+│                          ↓                                              │
+│  LINUX KERNEL (Ring 0)                                                  │
+│  ├── ternary_core module loads via early_initcall()                     │
+│  ├── Discovers UEFI config via efi.config_table                         │
+│  ├── Inherits θ, δ values from firmware                                 │
+│  ├── Creates /proc/ternary interface                                    │
+│  └── Hooks into cpufreq subsystem                                       │
+│                          ↓                                              │
+│  KVM HYPERVISOR (Ring -1, VMX Root)                                     │
+│  ├── ternary_kvm module extends KVM                                     │
+│  ├── Inherits θ, δ from kernel                                          │
+│  ├── Tracks per-VM PSI ratio                                            │
+│  ├── Exposes CPUID leaf 0x40000000                                      │
+│  └── Provides hypercalls 0x01000001-04                                  │
+└─────────────────────────────────────────────────────────────────────────┘
+```
+
+**This inheritance chain is NOVEL:**
+- No prior art passes ternary configuration from firmware to kernel to hypervisor
+- No prior art preserves classification parameters across boot phases
+- No prior art creates a unified Ψ-state across all privilege levels
 
 **Evidence of Non-Obviousness:**
 - 30+ years of Linux kernel development (30M+ lines): NO Ψ-state implementation
