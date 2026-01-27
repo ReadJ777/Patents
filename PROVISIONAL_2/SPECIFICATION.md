@@ -15,14 +15,48 @@
 
 | Term | Definition |
 |------|------------|
-| **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty, where a value's confidence score falls within the Psi threshold band (default: 0.5 ± 0.05). Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
+| **Ψ (Psi-Uncertainty)** | The third computational state representing uncertainty. **SINGLE CONTROLLING RULE:** A value is classified as Psi-Uncertainty if and only if `confidence ∈ [0.45, 0.55]` (the Psi threshold band). Unlike binary 0/1, Psi-Uncertainty indicates "insufficient information to decide." **Note:** This is distinct from Linux Pressure Stall Information (PSI) metrics; ZIME Psi-Uncertainty refers exclusively to ternary uncertainty classification. |
 | **Psi-Delta (δ)** | The threshold band half-width around the decision boundary (default: δ=0.05). Values within [threshold-δ, threshold+δ] are classified as Psi-Uncertainty. The threshold center is separately configurable (default: 0.5). |
-| **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation:** `confidence = weighted_mean` where weighted_mean is the exponentially-weighted moving average of input samples. **Interpretation:** Values in [0.0, 0.45] → high confidence in BINARY_0; values in [0.55, 1.0] → high confidence in BINARY_1; values in [0.45, 0.55] → Psi-Uncertainty band. **Note:** This is NOT a variance-based metric; it directly represents the weighted signal level. |
-| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = state_changes / 100`. Values >0.5 (>50 changes per window) trigger Psi-Uncertainty classification. Each window is independent; no overlap between consecutive windows. |
+| **Confidence Score** | A normalized floating-point value in range [0.0, 1.0] representing decision certainty. **Computation:** `confidence = α × current_sample + (1-α) × previous_confidence` where α=0.1 (EWMA smoothing factor). **Inputs to confidence:** (1) raw signal value normalized to [0,1], AND (2) transition density penalty: if density > 0.5, confidence is pulled toward 0.5 by factor (1 - density). **Interpretation:** Values in [0.0, 0.45] → BINARY_0; values in [0.55, 1.0] → BINARY_1; values in [0.45, 0.55] → Psi-Uncertainty. |
+| **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. Formula: `density = state_changes / 100`. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) reduces confidence toward 0.5, which may then trigger Psi-Uncertainty via the single controlling rule above. |
 | **Deferral** | The act of postponing computation on Psi-Uncertainty values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the Psi threshold. |
 | **Psi Detection Rate** | Percentage of samples classified as Psi-Uncertainty. Formula: (Psi samples / total_attempts) × 100. |
 | **Deferral Rate** | Percentage of operations deferred due to Psi-Uncertainty. Formula: (psi_deferrals / total_attempts) × 100, where total_attempts = decisions_committed + psi_deferrals. |
 | **Wrong-Decision Rate** | Percentage of forced binary decisions that proved incorrect against ground truth. Ground truth is established via: (1) synthetic test data with known correct answers, or (2) delayed verification where deferred decisions are later validated. |
+
+### Unified Classification State Machine
+
+**SINGLE CONTROLLING RULE FOR Ψ CLASSIFICATION:**
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  ZIME TERNARY CLASSIFIER                        │
+│                                                                 │
+│  Input: raw_sample, previous_confidence, transition_count      │
+│                                                                 │
+│  Step 1: Compute transition density                             │
+│          density = transition_count / 100                       │
+│                                                                 │
+│  Step 2: Compute raw confidence (EWMA)                          │
+│          raw_conf = 0.1 × normalize(raw_sample) + 0.9 × prev    │
+│                                                                 │
+│  Step 3: Apply density penalty (pulls toward 0.5)               │
+│          IF density > 0.5:                                      │
+│              penalty = (density - 0.5) × 2  // 0 to 1 scale     │
+│              confidence = raw_conf × (1 - penalty) + 0.5 × penalty│
+│          ELSE:                                                  │
+│              confidence = raw_conf                              │
+│                                                                 │
+│  Step 4: SINGLE CLASSIFICATION RULE                             │
+│          IF confidence < 0.45:     → BINARY_0                   │
+│          ELIF confidence > 0.55:   → BINARY_1                   │
+│          ELSE:                     → PSI_UNCERTAINTY            │
+│                                                                 │
+│  Output: { BINARY_0, BINARY_1, PSI_UNCERTAINTY }                │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Key Design Decision:** Transition density is NOT a separate classifier. It modifies the confidence score, which then feeds into the SINGLE classification rule. This ensures unambiguous, testable infringement boundaries.
 
 ### Evidence Artifacts
 
