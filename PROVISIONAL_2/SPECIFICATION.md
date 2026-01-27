@@ -785,7 +785,6 @@ A method for achieving production-grade ternary performance on binary hardware c
 - (b) Lazy Psi resolution deferring computation until caller explicitly requests resolution
 - (c) Bit-parallel operations processing 16 trits simultaneously via SIMD-compatible patterns
 - (d) Cache-line-aligned data structures (64-byte alignment) minimizing memory access latency
-- (e) Measured 2.9M ops/sec across 3-node cluster with <2% CPU overhead per node
 
 ### Claim 5: Production-Grade Kernel Integration
 A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-ready ternary computing comprising:
@@ -793,11 +792,9 @@ A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-read
 - (b) Automatic memory pool management using kernel slab allocator
 - (c) Boot-time initialization via early_initcall() ensuring availability during kernel init phase
 - (d) Per-operation logging to kernel ring buffer (dmesg) for debugging
-- (e) <2% CPU overhead verified via perf stat measurements
-- (f) Multi-node deployment with measured 100% uptime over 168M+ operations
 
 ### Claim 6: Uncertainty-Aware CPU Frequency Scaling
-**Platform Scope:** Linux kernel 5.10+ on x86_64 architecture with CONFIG_CPU_FREQ=y. Alternative platforms (OpenBSD, cloud VMs, ARM) use graceful fallback.
+**Platform Scope:** Linux kernel 5.10+ on x86_64 architecture with CONFIG_CPU_FREQ=y.
 
 A method of power management based on sustained Psi-Uncertainty rate comprising:
 - (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`, computed every `SAMPLE_INTERVAL` (default: 1 second)
@@ -807,14 +804,15 @@ A method of power management based on sustained Psi-Uncertainty rate comprising:
     - Set powersave: `echo "powersave" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
     - Set performance: `echo "performance" > /sys/devices/system/cpu/cpu0/cpufreq/scaling_governor`
 - (d) Frequency restoration: When `node_psi_rate < RESTORE_THRESHOLD` (default: 0.50) for `RESTORE_WINDOW` (default: 10 seconds), restore governor to "performance"
-- (e) Graceful fallback: On platforms without cpufreq (OpenBSD, cloud VMs, containers), power management is disabled and ternary computation continues unaffected
 
-**Cross-Platform Validation (5 nodes tested):**
-| Platform | cpufreq | Behavior |
-|----------|---------|----------|
-| Linux + cpufreq | ✅ YES | Uses scaling_governor |
-| Linux cloud VM | ❌ NO | Graceful fallback, computation continues |
-| OpenBSD | ❌ NO | Graceful fallback, computation continues |
+**Platform-Specific Power Management (NOT part of claim, for reference only):**
+| Platform | Interface | Method |
+|----------|-----------|--------|
+| Linux + cpufreq | /sys/devices/system/cpu/cpufreq/ | scaling_governor |
+| OpenBSD | sysctl | hw.setperf (0-100%) |
+| Cloud VMs | N/A | Hypervisor-controlled |
+
+**Note:** This claim is LIMITED to Linux systems with CONFIG_CPU_FREQ=y. OpenBSD and cloud VMs use platform-specific power management outside the scope of this claim; the core ternary algorithm operates identically on all platforms.
 
 ---
 
@@ -1005,7 +1003,6 @@ This physical verification strengthens Claims 1 and 5:
 - ✅ PROVEN: Deployed to real hardware (CLIENT node - Ubuntu 24.04)
 - ✅ PROVEN: Safe failure handling (system recovered)
 - ✅ PROVEN: Core stack operational (UEFI + Kernel + Library)
-- ✅ DEMONSTRATED: Optional hypervisor layer (separate divisional)
 
 **Timeline for Patent Office:**
 - BIOS Date: 06/26/2025 (HOMEBASE system, 7 months before patent)
