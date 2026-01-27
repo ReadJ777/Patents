@@ -30,7 +30,7 @@
 
 ### What Was Implemented
 
-**Ring -1 Hypervisor Module** - The deepest software-only layer in the computing stack, running **below the operating system kernel**. This layer manages virtual machines and has direct hardware access.
+**VMX Root Mode (Ring -1 equivalent) Hypervisor Module** - The deepest software-only layer in the computing stack, running **at VMX root privilege level, below guest OS kernels**. This layer manages virtual machines and has direct hardware access.
 
 **Why This Matters:**
 - One hypervisor installation = thousands of VMs automatically benefit
@@ -46,7 +46,7 @@
 ├─────────────────────────────────────────────┤
 │  Ring 0: OS Kernel (Linux, Windows)         │
 ├─────────────────────────────────────────────┤
-│  Ring -1: HYPERVISOR (NEW TERNARY LAYER!) ← THIS!
+│  VMX Root Mode (Ring -1 equivalent): HYPERVISOR (NEW TERNARY LAYER!) ← THIS!
 ├─────────────────────────────────────────────┤
 │  Ring -2: UEFI Firmware                     │
 ├─────────────────────────────────────────────┤
@@ -118,7 +118,7 @@ static enum ternary_state analyze_vm_state(struct kvm_vcpu *vcpu) {
 ### Original Claims Enhanced
 
 **Claim 1 (System Architecture):**
-- NOW INCLUDES: "wherein the ternary logic system is implemented at the hypervisor layer (Ring -1)"
+- NOW INCLUDES: "wherein the ternary logic system is implemented at the hypervisor layer (VMX Root Mode (Ring -1 equivalent))"
 - BENEFIT: One installation serves thousands of VMs
 
 **Claim 5 (Resource Management):**
@@ -161,16 +161,18 @@ e) Providing ternary state visibility to guest operating systems
 - Google Compute: ~$30B annually
 - **Total addressable market: $170B+**
 
-### Value Proposition
+### Value Proposition (Projected, Based on PoC Results)
 
-**For Cloud Providers:**
-- 15-30% improvement in VM density (more VMs per physical host)
-- Reduced power consumption (PSI-aware power gating)
-- Better SLA compliance (priority to transitioning VMs)
+**For Cloud Providers (Future Work):**
+- Projected 15-30% improvement in VM density (pending production validation)
+- Potential power reduction via Psi-aware power gating
+- Possible SLA improvements via priority scheduling
+
+**Note:** These projections are based on proof-of-concept testing and theoretical analysis. Production-scale measurements will be conducted during non-provisional patent phase.
 
 **For Enterprise Customers:**
-- Lower VM costs (more efficient resource allocation)
-- Better performance (PSI-aware scheduling)
+- Lower VM costs (projected from efficiency improvements)
+- Performance optimization potential
 - Automatic optimization (no app changes needed)
 
 ### Deployment Path
@@ -226,15 +228,17 @@ e) Providing ternary state visibility to guest operating systems
 - Scheduling decision overhead: <50μs
 - State transition tracking: Real-time
 
-**Memory Management:**
+**Memory Management (PoC Measured):**
 - Page table walk overhead: <5%
 - Memory pressure detection: <1ms
 - Dynamic reallocation: <10ms
 
-**Power Efficiency:**
-- Idle VM power reduction: 15-20%
-- Active VM overhead: <2%
-- Overall cluster efficiency: +15-30%
+**Power Efficiency (Projected - Pending Production Validation):**
+- Idle VM power reduction: 15-20% (projected)
+- Active VM overhead: <2% (measured in PoC)
+- Overall cluster efficiency: Pending production measurement
+
+**Note:** Performance projections based on proof-of-concept measurements. Production-scale validation is future work.
 
 ---
 
@@ -299,7 +303,7 @@ e) Providing ternary state visibility to guest operating systems
 
 **1. PROVISIONAL_2/SPECIFICATION.md**
 - Add Section 4: "Hypervisor Layer Implementation"
-- Include Ring -1 architecture diagram
+- Include VMX Root Mode (Ring -1 equivalent) architecture diagram
 - Add PSI-aware VM scheduling claims
 - Reference cloud computing market
 
@@ -309,7 +313,7 @@ e) Providing ternary state visibility to guest operating systems
 - Add Claim 9: Cross-VM ternary state propagation
 
 **3. PATENT_DEVELOPMENT_TIMELINE.md**
-- Add Jan 26, 2026 04:00 UTC: Ring -1 hypervisor implementation
+- Add Jan 26, 2026 04:00 UTC: VMX Root Mode (Ring -1 equivalent) hypervisor implementation
 - Document 894 lines of KVM integration code
 - Note market expansion to cloud computing
 
@@ -437,7 +441,7 @@ Cloud providers waste 30-40% of computing capacity due to:
 9. **Security Audit** - Ensure no VM escape vulnerabilities
 10. **Performance Tuning** - Optimize PSI threshold detection
 11. **Upstream Preparation** - Prepare Linux kernel patch
-12. **Investor Outreach** - Present Ring -1 cloud opportunity
+12. **Investor Outreach** - Present VMX Root Mode (Ring -1 equivalent) cloud opportunity
 
 ### Long-Term (8-12 Weeks)
 
@@ -477,7 +481,7 @@ Cloud providers waste 30-40% of computing capacity due to:
 
 ### Technical Achievement
 
-✅ **Ring -1 implementation complete** (894 lines)  
+✅ **VMX Root Mode (Ring -1 equivalent) implementation complete** (894 lines)  
 ✅ **Deepest software-only layer** (below OS kernel)  
 ✅ **KVM integration** (Linux hypervisor standard)  
 ✅ **Ready for hardware testing** (HOMEBASE deployment)
