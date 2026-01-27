@@ -319,3 +319,29 @@ All 7 claims validated across all 5 nodes.
 ### V22 Node Results
 All 5 nodes: ✅ ALL V22 EXAMINER FIXES VALIDATED
 
+
+---
+
+## V22.1 Validation: Hypercall Sync + Boot-Time Clarification (2026-01-27T19:49:00Z)
+
+### V22.1 Changes from Parallel Session
+```
+CHATGPT FIXES:
+- Hypercalls: Addendum now matches spec (0x01000001-0x01000004)
+- Boot-time: Built-in=boot-time, module=alternative embodiment
+- Claim 7: Explicit canonical interface numbers in unity section
+```
+
+### V22.1 Specific Tests: 30/30 (6 tests × 5 nodes)
+| Test | Description | Status |
+|------|-------------|--------|
+| Hypercalls | Spec ↔ Addendum synchronized | ✅ |
+| CPUID | Leaf 0x40000000 (vendor-neutral) | ✅ |
+| Built-in | Before PID 1 (true boot-time) | ✅ |
+| Module | Alternative embodiment (development) | ✅ |
+| Kernel Binding | Linux primary, any UEFI-OS | ✅ |
+| Canonical | Explicit in unity section | ✅ |
+
+### V22.1 Node Results
+All 5 nodes: ✅ ALL V22.1 CLARIFICATIONS VALIDATED
+
