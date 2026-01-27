@@ -13,11 +13,12 @@ while true; do
     echo ""
     echo "🦅 ITER $ITERATION - $(date '+%Y-%m-%d %H:%M:%S')"
     
-    RESULT=$(timeout 30 ssh -o ConnectTimeout=10 root@192.168.1.202 'python3 -c "
+    # Try direct first, then via CLIENTTWIN jump host (for power outage scenarios)
+    RESULT=$(timeout 30 ssh -o ConnectTimeout=5 root@192.168.1.202 'python3 -c "
 import random, json, time
 r = {\"ts\": time.strftime(\"%H:%M\"), \"psi\": round(sum(1 for _ in range(10000) if 0.35<random.gauss(0.5,0.3)<0.65)/100,1)}
 print(json.dumps(r))
-"' 2>/dev/null || echo '{"error": "timeout"}')
+"' 2>/dev/null || timeout 30 ssh -o ConnectTimeout=5 root@10.30.239.185 'ssh -o ConnectTimeout=5 root@192.168.1.202 "python3 -c \"import random, json, time; r = {\\\"ts\\\": time.strftime(\\\"%H:%M\\\"), \\\"psi\\\": round(sum(1 for _ in range(10000) if 0.35<random.gauss(0.5,0.3)<0.65)/100,1)}; print(json.dumps(r))\""' 2>/dev/null || echo '{"error": "timeout"}')
     
     echo "$RESULT" > "$LOG_DIR/test_$(date +%Y%m%d_%H%M).json"
     echo "Result: $RESULT"
