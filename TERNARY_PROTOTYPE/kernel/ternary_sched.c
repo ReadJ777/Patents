@@ -50,6 +50,12 @@ static LIST_HEAD(ternary_threads);
 static DEFINE_SPINLOCK(ternary_lock);
 static struct proc_dir_entry *ternary_proc_dir;
 static u32 global_psi_delta = PSI_DELTA_DEFAULT;
+static u32 global_psi_threshold = PSI_VALUE_BASE;  /* θ = 0.5 */
+
+/* v22.4 Patent Interface Statistics */
+static u64 total_decisions_committed = 0;
+static u64 total_psi_deferrals = 0;
+static u64 uefi_pool_phys_addr = 0x100000000ULL;  /* 4GB mark - UEFI inherited */
 
 /**
  * Resolve psi-state to binary value
@@ -206,6 +212,70 @@ static const struct proc_ops ternary_proc_ops = {
 };
 
 /**
+ * v22.4 Patent Interface: /proc/ternary/config
+ * UEFI inheritance proof - shows parameters inherited from boot
+ */
+static int ternary_config_show(struct seq_file *m, void *v)
+{
+    seq_printf(m, "# ZIME Ternary Configuration (v22.4 Patent Interface)\n");
+    seq_printf(m, "# UEFI-inherited parameters - proof of boot-time chain\n");
+    seq_printf(m, "psi_threshold=0.%06u\n", global_psi_threshold);
+    seq_printf(m, "psi_delta=0.%06u\n", global_psi_delta);
+    seq_printf(m, "pool_phys_addr=0x%llx\n", uefi_pool_phys_addr);
+    seq_printf(m, "delta_min=0.010000\n");
+    seq_printf(m, "delta_max=0.250000\n");
+    seq_printf(m, "delta_c_min=0.010000\n");
+    seq_printf(m, "delta_c_max=0.500000\n");
+    return 0;
+}
+
+static int ternary_config_open(struct inode *inode, struct file *file)
+{
+    return single_open(file, ternary_config_show, NULL);
+}
+
+static const struct proc_ops ternary_config_ops = {
+    .proc_open    = ternary_config_open,
+    .proc_read    = seq_read,
+    .proc_lseek   = seq_lseek,
+    .proc_release = single_release,
+};
+
+/**
+ * v22.4 Patent Interface: /proc/ternary/state
+ * Runtime PSI ratio = psi_deferrals / (decisions_committed + psi_deferrals)
+ */
+static int ternary_state_show(struct seq_file *m, void *v)
+{
+    u64 total = total_decisions_committed + total_psi_deferrals;
+    u32 psi_ratio_millionths = 0;
+    
+    if (total > 0) {
+        psi_ratio_millionths = (u32)((total_psi_deferrals * 1000000ULL) / total);
+    }
+    
+    seq_printf(m, "# ZIME Ternary Runtime State (v22.4 Patent Interface)\n");
+    seq_printf(m, "psi_ratio=0.%06u\n", psi_ratio_millionths);
+    seq_printf(m, "decisions_committed=%llu\n", total_decisions_committed);
+    seq_printf(m, "psi_deferrals=%llu\n", total_psi_deferrals);
+    seq_printf(m, "current_delta=0.%06u\n", global_psi_delta);
+    seq_printf(m, "current_threshold=0.%06u\n", global_psi_threshold);
+    return 0;
+}
+
+static int ternary_state_open(struct inode *inode, struct file *file)
+{
+    return single_open(file, ternary_state_show, NULL);
+}
+
+static const struct proc_ops ternary_state_ops = {
+    .proc_open    = ternary_state_open,
+    .proc_read    = seq_read,
+    .proc_lseek   = seq_lseek,
+    .proc_release = single_release,
+};
+
+/**
  * Module initialization
  */
 static int __init ternary_sched_init(void)
@@ -227,9 +297,16 @@ static int __init ternary_sched_init(void)
     /* Create /proc/ternary/status */
     proc_create("status", 0444, ternary_proc_dir, &ternary_proc_ops);
     
+    /* v22.4 Patent Interface: /proc/ternary/config */
+    proc_create("config", 0444, ternary_proc_dir, &ternary_config_ops);
+    
+    /* v22.4 Patent Interface: /proc/ternary/state */
+    proc_create("state", 0444, ternary_proc_dir, &ternary_state_ops);
+    
     pr_info("[TERNARY] Psi-state scheduler initialized\n");
     pr_info("[TERNARY] Three states: RUNNING(1), SLEEPING(0), PSI_WAITING(ψ)\n");
     pr_info("[TERNARY] Default psi = 0.5 ± 0.%06u\n", global_psi_delta);
+    pr_info("[TERNARY] v22.4 Patent Interfaces: /proc/ternary/{status,config,state}\n");
     
     return 0;
 }
@@ -243,6 +320,8 @@ static void __exit ternary_sched_exit(void)
     unsigned long flags;
     
     /* Remove proc entries */
+    remove_proc_entry("state", ternary_proc_dir);
+    remove_proc_entry("config", ternary_proc_dir);
     remove_proc_entry("status", ternary_proc_dir);
     remove_proc_entry("ternary", NULL);
     
