@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v21.2)  
+**Prepared:** January 27, 2026 (v22)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -23,6 +23,7 @@
 | **Transition Density** | The rate of state changes per fixed time window. **Window specification:** 100ms tumbling (non-overlapping) window, 1ms sampling rate, 100 samples per window. **Counting rule:** A "state change" is counted once per sample interval when the raw signal crosses the threshold (not per-flip within a sample). Maximum one state change per 1ms sample → maximum 100 per window. Formula: `density = clamp(state_changes / 100.0, 0.0, 1.0)`. **Clamping:** Both state_changes (to 100) and density (to [0,1]) are clamped; "high-frequency transitions" refers to rapid threshold crossings across samples, not sub-millisecond oscillations within a sample. **Role:** Transition density is an INPUT to confidence calculation (not a separate Psi trigger). High density (>0.5) activates the penalty term which pulls confidence toward 0.5. |
 | **Deferral** | The act of postponing computation on Psi-Uncertainty values rather than forcing a binary decision. Deferred operations are queued until confidence exceeds the Psi threshold. **Timeout behavior:** Deferred decisions timeout after 1000ms (configurable via `/proc/ternary/deferral_timeout_ms`). **Safe default:** On timeout, the system returns BINARY_0 (fail-safe) and increments `/proc/ternary/timeout_count`. |
 | **Psi Detection Rate** | Percentage of samples classified as Psi-Uncertainty. Formula: (Psi samples / total_attempts) × 100. |
+| **PSI Ratio** | The fraction of operations in Psi-Uncertainty state. **SINGLE FORMULA:** `psi_ratio = psi_deferrals / (decisions_committed + psi_deferrals)`. Range: [0.0, 1.0]. Exposed via `/proc/ternary/state` as a floating-point value. **Example:** 199,938 PSI out of 1,000,000 total = PSI ratio 0.1999. |
 | **Deferral Rate** | Percentage of operations deferred due to Psi-Uncertainty. Formula: (psi_deferrals / total_attempts) × 100, where total_attempts = decisions_committed + psi_deferrals. |
 | **Wrong-Decision Rate** | Percentage of forced binary decisions that proved incorrect against ground truth. Ground truth is established via: (1) synthetic test data with known correct answers, or (2) delayed verification where deferred decisions are later validated. |
 
@@ -490,10 +491,14 @@ IF local_state == PSI_PENDING:
 COLLECT weighted votes from all nodes
 weighted_sum_0 = Σ(weight_i) for votes choosing 0
 weighted_sum_1 = Σ(weight_i) for votes choosing 1
+total_weight = weighted_sum_0 + weighted_sum_1
+
+// NORMALIZE before comparing to δ_c (per DOMAIN BINDING rule)
+normalized_margin = |weighted_sum_0 - weighted_sum_1| / total_weight
 
 // NOTE: Uses δ_c (consensus-delta), NOT classification δ
 // δ_c is a SEPARATE parameter for vote margin (default: 0.10)
-IF |weighted_sum_0 - weighted_sum_1| > δ_c:
+IF normalized_margin > δ_c:
     → adopt higher-weighted consensus
 ELSE:
     // Shannon entropy tie-break over last N=100 decisions
@@ -790,7 +795,7 @@ A method for achieving production-grade ternary performance on binary hardware c
 
 ### Claim 5: Production-Grade Kernel Integration
 A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-ready ternary computing comprising:
-- (a) /proc/ternary interface exposing: psi_threshold, psi_delta, total_attempts, decisions_committed, psi_deferrals, deferral_rate_percent
+- (a) /proc/ternary interface exposing: state (PSI ratio as float), psi_threshold, psi_delta, total_attempts, decisions_committed, psi_deferrals, deferral_rate_percent, deferral_timeout_ms, timeout_count
 - (b) Automatic memory pool management using kernel slab allocator
 - (c) Boot-time initialization via early_initcall() ensuring availability during kernel init phase
 - (d) Per-operation logging to kernel ring buffer (dmesg) for debugging

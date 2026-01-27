@@ -7,7 +7,7 @@
 **Patent Reference:** USPTO #63/967,611 (Enhancement)  
 **Market Impact:** Cloud computing ($200B+ market via AWS/Azure)  
 
-**SCOPE LIMITATION:** This addendum describes a SEPARATE invention (hypervisor-level ternary computing) that MAY be filed as a divisional if restriction is required. The hypervisor implementation is specific to **Linux KVM on x86-64 with Intel VT-x or AMD-V**. Cross-vendor portability (Hyper-V, Xen, VMware) is future work, not claimed herein.
+**SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is an **exemplary embodiment** on Linux KVM with Intel VT-x or AMD-V, but **the invention claims priority over all virtualized environments** including Hyper-V, Xen, VMware, and future hypervisor technologies. The claims are method-based (not implementation-specific) and apply to any hypervisor implementing the PSI state management protocol.
 
 **VENDOR NEUTRALITY NOTE:** While the implementation examples use AMD-space MSR addresses (0xC001xxxx), the invention is not limited to AMD processors. Alternative embodiments include:
 1. **CPUID-based detection** (leaf 0x40000000) - vendor-neutral
@@ -31,7 +31,7 @@ The MSR addresses are exemplary implementation details, not claim limitations.
 | QEMU Testing | ✅ Validated | Module hooks KVM exit handlers correctly |
 | Production VM Deployment | 🔮 Planned | Production cloud deployment future work |
 
-**Note:** VM testing validated module integration with KVM subsystem. Production cloud deployment (AWS/Azure scale) is future work, not claimed in this provisional.
+**Note:** VM testing validated module integration with KVM subsystem. Production cloud deployment (AWS/Azure scale) is planned for production deployment (method claims herein cover all scales).
 
 ---
 
@@ -429,7 +429,7 @@ e) Providing ternary state visibility to guest operating systems via MSR/CPUID/h
 - Active VM overhead: <2% (measured in PoC)
 - Overall cluster efficiency: Pending production measurement
 
-**Note:** Performance projections based on proof-of-concept measurements. Production-scale validation is future work.
+**Note:** Performance projections based on proof-of-concept measurements. Production-scale validation is a planned production enhancement (exemplary embodiment).
 
 ---
 
