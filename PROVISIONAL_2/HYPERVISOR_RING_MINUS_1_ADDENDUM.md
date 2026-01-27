@@ -9,6 +9,13 @@
 
 **SCOPE LIMITATION:** This addendum describes a SEPARATE invention (hypervisor-level ternary computing) that MAY be filed as a divisional if restriction is required. The hypervisor implementation is specific to **Linux KVM on x86-64 with Intel VT-x or AMD-V**. Cross-vendor portability (Hyper-V, Xen, VMware) is future work, not claimed herein.
 
+**VENDOR NEUTRALITY NOTE:** While the implementation examples use AMD-space MSR addresses (0xC001xxxx), the invention is not limited to AMD processors. Alternative embodiments include:
+1. **CPUID-based detection** (leaf 0x40000000) - vendor-neutral
+2. **Hypercall interface** - vendor-neutral, works on Intel and AMD
+3. **Shared memory region** - no MSR required
+
+The MSR addresses are exemplary implementation details, not claim limitations.
+
 ---
 
 ## VALIDATION STATUS TABLE
