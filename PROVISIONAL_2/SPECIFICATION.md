@@ -77,9 +77,11 @@
 │          // Max distance from threshold is max(threshold, 1-threshold)
 │          max_distance = max(threshold, 1.0 - threshold)         │
 │          raw_distance = |confidence - threshold|                │
-│          // Normalize to [0,1]: 0 at extremes, 1 at threshold  │
+│          // Normalize to [0,1]: 0 at max distance from threshold│
+│          // For θ=0.5: extremes (0,1) both map to 0             │
+│          // For θ≠0.5: farther extreme maps to 0, closer to >0  │
 │          uncertainty_level = clamp(1.0 - raw_distance/max_distance, 0.0, 1.0)
-│          // Weight: 0 at threshold (uncertain), 1 at extremes  │
+│          // Weight = 1 - uncertainty: confident votes count more│
 │          vote_weight = clamp(1.0 - uncertainty_level, 0.0, 1.0) │
 │          // Equivalently: vote_weight = raw_distance/max_distance│
 │                                                                 │
@@ -94,7 +96,7 @@
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-**Formula Reconciliation:** The penalty term `(density - 0.5) × 2` maps density [0.5, 1.0] to raw_penalty [0.0, 1.0]. The penalty is then clamped to [0.0, 1.0] to handle edge cases where density might exceed 1.0 due to high-frequency transitions. When penalty=0, confidence=ewma_conf unchanged. When penalty=1, confidence=0.5 (full pull to center). This is the SINGLE authoritative formula.
+**Formula Reconciliation:** The penalty term `(density - 0.5) × 2` maps density [0.5, 1.0] to raw_penalty [0.0, 1.0]. The penalty is clamped to [0.0, 1.0]. Since density is always in [0.0, 1.0] (transitions capped at window size per Transition Density definition), the clamp handles only floating-point edge cases. When penalty=0, confidence=ewma_conf unchanged. When penalty=1, confidence=0.5 (full pull to center). This is the SINGLE authoritative formula.
 
 **Boundary Classification:** Values exactly at the lower_bound or upper_bound are classified as PSI_UNCERTAINTY (using `<` and `>` for strict inequality on binary regions, `∈ [lower, upper]` for Ψ). This ensures deterministic behavior at boundary values.
 
@@ -461,9 +463,10 @@ confidence = compute_confidence(input_data)  // See Confidence Score definition
 max_distance = max(threshold, 1.0 - threshold)
 raw_distance = |confidence - threshold|
 uncertainty_level = clamp(1.0 - raw_distance / max_distance, 0.0, 1.0)
-// Result: 0 at extremes (confident), 1 at threshold (uncertain)
+// Result: 0 at max distance from threshold, 1 at threshold
+// For asymmetric θ: farther extreme→0 (most confident), closer extreme→>0
 
-// Classification per SINGLE CONTROLLING RULE:
+// Classification per SINGLE CONTROLLING RULE (uses δ, NOT δ_c):
 lower_bound = threshold - δ
 upper_bound = threshold + δ
 IF confidence > upper_bound → decide BINARY_1
