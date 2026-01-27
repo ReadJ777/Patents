@@ -375,3 +375,31 @@ ChatGPT: Addressing final 4 tripwires
 ### V22.2 Node Results
 All 5 nodes: ✅ ALL V22.2 FIXES VALIDATED - LANDLORD STATUS MAINTAINED
 
+
+---
+
+## V22.3 Validation: One Clean Interface (2026-01-27T20:10:00Z)
+
+### V22.3 Changes from Parallel Session
+```
+FIX 1: PSI ratio vs UEFI proof - Added /proc/ternary/config for inheritance proof
+FIX 2: Hypervisor enablement - Explicit 5-step KVM mapping with API references
+FIX 3: Removed 'any hypervisor' claim, focused on METHOD + PHOSITA enablement
+
+One clean interface, one clean proof signal, one clean story.
+```
+
+### V22.3 Specific Tests: 35/35 (7 tests × 5 nodes)
+| Fix | Test | Status |
+|-----|------|--------|
+| 1a | Separate: config ≠ state | ✅ |
+| 1b | /proc/ternary/config: UEFI inheritance | ✅ |
+| 1c | /proc/ternary/state: runtime PSI ratio | ✅ |
+| 2a | 5-step KVM mapping | ✅ |
+| 2b | PHOSITA enablement | ✅ |
+| 3 | METHOD focus (not 'any hypervisor') | ✅ |
+| - | 4 distinct endpoints | ✅ |
+
+### V22.3 Node Results
+All 5 nodes: ✅ V22.3 ONE CLEAN INTERFACE VALIDATED
+
