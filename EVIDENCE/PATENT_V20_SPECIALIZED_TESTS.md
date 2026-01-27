@@ -403,3 +403,32 @@ One clean interface, one clean proof signal, one clean story.
 ### V22.3 Node Results
 All 5 nodes: ✅ V22.3 ONE CLEAN INTERFACE VALIDATED
 
+
+---
+
+## V22.4 Validation: Precision Seams Fixed (2026-01-27T20:18:00Z)
+
+### V22.4 Changes from Parallel Session
+```
+FIX 1: All 30% examples now show δ=0.15 explicitly
+FIX 2: ONE CONTROLLING RULE for δ [0.01,0.25] vs δ_c [0.01,0.50]
+FIX 3: Removed 'other hypervisors' - KVM-only with concrete API mappings
+FIX 4: Added actual KVM file paths for each method step
+
+Precision seams closed.
+```
+
+### V22.4 Specific Tests: 35/35 (7 tests × 5 nodes)
+| Fix | Test | Status |
+|-----|------|--------|
+| 1a | δ=0.15 → 30% deferral | ✅ |
+| 1b | Consistent: δ=0.05→10%, δ=0.10→20%, δ=0.15→30% | ✅ |
+| 2a | Distinct ranges: δ vs δ_c | ✅ |
+| 2b | ONE CONTROLLING RULE | ✅ |
+| 3 | KVM-only (no 'other hypervisors') | ✅ |
+| 4a | 4 concrete KVM file paths | ✅ |
+| 4b | KVM structs documented | ✅ |
+
+### V22.4 Node Results
+All 5 nodes: ✅ V22.4 PRECISION SEAMS VALIDATED
+
