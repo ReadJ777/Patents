@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v21.1)  
+**Prepared:** January 27, 2026 (v21.2)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -748,6 +748,8 @@ ZIME "Psi-Uncertainty" (Ψ) is **unrelated** to Linux Pressure Stall Information
 ## CLAIMS
 
 ### Claim 1: UEFI Firmware Integration with Reserved Memory Handoff
+**Architecture Scope:** UEFI specification is architecture-independent (x86, ARM, RISC-V, future architectures). This claim applies to ANY platform implementing UEFI 2.0+ specification. The boot sequence ownership occurs BEFORE CPU instruction set matters, making architecture-specific attacks irrelevant.
+
 A method for initializing ternary computing capabilities at firmware level comprising:
 - (a) A UEFI application that allocates EfiReservedMemoryType memory (survives ExitBootServices) for Psi-Uncertainty storage before OS load
 - (b) A TERNARY_CONFIG structure stored in UEFI Configuration Table containing: Magic (0x5A494D45), Version, PsiThreshold (default 0.5), PsiDelta (default 0.05), PoolPhysAddr, PoolSize
