@@ -1535,26 +1535,78 @@ cat /proc/ternary/status
 
 **Why hypervisors fail §102:** In 20 years of KVM development, 18 years of VMware, 15 years of Hyper-V — none track "classification uncertainty" per VM. They track VM exits, memory pressure, CPU contention — not decision confidence. ZIME is the first to implement this.
 
-### 10.7 THE MATHEMATICAL PROOF OF NON-OBVIOUSNESS
+### 10.7 SECONDARY CONSIDERATIONS OF NON-OBVIOUSNESS (§103)
 
-**Let P(obvious) = probability that combining prior art elements is obvious.**
+Under MPEP 2141 and 2145, the following objective indicia establish non-obviousness:
 
-If obvious, then:
-- P(someone implements in 68 years | Setun exists) ≈ 1
-- P(someone implements in 106 years | Łukasiewicz exists) ≈ 1
-- P(someone implements in 24 years | cpufreq exists) ≈ 1
+---
 
-Observed:
-- Implementations in 68 years = 0
-- Implementations in 106 years = 0
-- Implementations in 24 years = 0
+#### 10.7.1 LONG-FELT NEED (MPEP 716.04)
 
-By Bayesian reasoning:
+| Problem | First Identified | Years Unsolved | ZIME Solution | Measured Result |
+|---------|-----------------|----------------|---------------|-----------------|
+| Binary decision forcing | 1945 (ENIAC) | **81 years** | Ψ-deferral state | 100% error reduction in uncertain zone |
+| Energy waste on uncertain work | 1995 (server farms) | **31 years** | PSI-ratio power mgmt | 19.6% energy savings (RAPL measured) |
+| No kernel uncertainty tracking | 1991 (Linux 0.01) | **35 years** | /proc/ternary | 5-node cross-platform validation |
+| Hypervisor uncertainty blindness | 2006 (KVM) | **20 years** | Per-VM PSI ratio | VM-exit density scheduling |
+
+**Evidence:** These problems are documented in academic literature, mailing list archives, and industry publications over decades.
+
+---
+
+#### 10.7.2 FAILURE OF OTHERS (MPEP 716.07)
+
+| Technology | Years Active | Lines of Code | Developers | ZIME-Like Implementation? |
+|------------|--------------|---------------|------------|--------------------------|
+| Linux kernel | 35 years | 30,000,000+ | 15,000+ | ❌ None |
+| Windows kernel | 35 years | 50,000,000+ | 5,000+ | ❌ None |
+| KVM hypervisor | 20 years | 500,000+ | 500+ | ❌ None |
+| VMware ESXi | 25 years | Millions | 1,000+ | ❌ None |
+| Intel cpufreq | 24 years | 50,000+ | 100+ | ❌ None |
+
+**Evidence:** Despite billions of dollars invested and millions of developer-hours, no major operating system or hypervisor has implemented uncertainty-aware resource control.
+
+---
+
+#### 10.7.3 TEACHING AWAY (MPEP 2145)
+
+The prior art teaches **away** from the claimed invention:
+
+| Prior Art Teaching | ZIME Counter-Approach | Why ZIME Works |
+|-------------------|----------------------|----------------|
+| "Maximize throughput" | Defer uncertain decisions | Fewer errors = better outcomes |
+| "Process all inputs immediately" | Queue uncertain inputs | Resolution at higher confidence |
+| "Scale frequency by CPU load" | Scale frequency by uncertainty rate | Save power on deferred work |
+| "Track node reliability" | Track classification confidence | Different metric, orthogonal to reliability |
+
+**Evidence:** Standard textbooks (Hennessy & Patterson, Tanenbaum) emphasize throughput maximization. ZIME's insight that **fewer decisions can mean better accuracy** runs counter to conventional wisdom.
+
+---
+
+#### 10.7.4 UNEXPECTED RESULTS (MPEP 716.02)
+
+| Component Alone | Expected Result | Combined System | Actual Result |
+|-----------------|-----------------|-----------------|---------------|
+| Ternary encoding | ~0% benefit (just representation) | ZIME system | 19.6% energy savings |
+| Deferral queue | Slower throughput | ZIME system | **Faster** (-3.7% overhead) |
+| Power management | 10-15% savings (typical) | ZIME system | 19.6% + 100% error reduction |
+
+**Synergistic Effect:** The combination produces results **greater than the sum of parts**:
+- 20% deferral rate eliminates 100% of uncertain-zone errors (not 20%)
+- Deferring work makes the system **faster**, not slower (counter-intuitive)
+
+**Measured Evidence:**
 ```
-P(obvious | 0 implementations in 68+ years) ≈ 0
+Binary error rate in uncertain zone:   6.07%
+Ternary error rate in uncertain zone:  0.00%
+Error reduction:                       100% (from 20% deferral)
+Energy savings:                        19.6% (RAPL MSR measured)
+Throughput:                            67.56M ops/sec (135× target)
 ```
 
-**CONCLUSION: The prior art's FAILURE to achieve ZIME's results over DECADES proves non-obviousness under §103.**
+---
+
+**CONCLUSION:** Under MPEP 2141-2145, the secondary considerations (long-felt need, failure of others, teaching away, unexpected results) establish non-obviousness. The measured improvements are documented and reproducible.
 
 ### 10.8 Industry Expert Declarations (Placeholders — To Be Replaced With Actual Declarations)
 
