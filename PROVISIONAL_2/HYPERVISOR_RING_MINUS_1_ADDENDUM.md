@@ -1,12 +1,11 @@
 # RING -1 HYPERVISOR LAYER - PATENT ADDENDUM
 ## Ternary Computing at the Deepest Software Layer
 
-**Prepared:** January 27, 2026 (v24.4.6 — Technical Consistency Fixes)  
+**Prepared:** January 27, 2026 (v24.4.7 — Claims/Projections Separation)  
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
 **Status:** Proof-of-Concept Implemented (894 lines)  
 **Patent Reference:** USPTO #63/967,611 (Enhancement)  
-**Market Impact:** Cloud computing ($200B+ market via AWS/Azure)  
-**Version:** v24.4.6 (synchronized with SPECIFICATION.md)  
+**Version:** v24.4.7 (synchronized with SPECIFICATION.md)  
 
 **SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is the **enabling disclosure** on Linux KVM with Intel VT-x or AMD-V. 
 
@@ -383,26 +382,32 @@ e) Providing ternary state visibility to guest operating systems via MSR/CPUID/h
 
 ---
 
-## MARKET IMPLICATIONS
+---
+
+## APPENDIX A: MARKET ANALYSIS (NON-CLAIM, NON-ESSENTIAL)
+
+**⚠️ NOTICE: This section contains market projections and business analysis. It is NOT part of the technical enabling disclosure and is NOT essential to the claimed invention. This material is provided for informational purposes only.**
+
+---
 
 ### Target Market: Cloud Infrastructure
 
-**Cloud Provider Economics:**
+**Cloud Provider Economics (Public Data):**
 - AWS EC2 revenue: ~$80B annually
 - Azure VMs: ~$60B annually
 - Google Compute: ~$30B annually
 - **Total addressable market: $170B+**
 
-### Value Proposition (Projected, Based on PoC Results)
+### Value Proposition (PROJECTED — NOT CLAIMED)
 
-**For Cloud Providers (Future Work):**
+**For Cloud Providers (Future Work — Pending Validation):**
 - Projected 15-30% improvement in VM density (pending production validation)
 - Potential power reduction via Psi-aware power gating
 - Possible SLA improvements via priority scheduling
 
-**Note:** These projections are based on proof-of-concept testing and theoretical analysis. Production-scale measurements will be conducted during non-provisional patent phase.
+**⚠️ DISCLAIMER:** These projections are based on proof-of-concept testing and theoretical analysis. Production-scale measurements will be conducted during non-provisional patent phase. Actual results may vary.
 
-**For Enterprise Customers:**
+**For Enterprise Customers (Theoretical):**
 - Lower VM costs (projected from efficiency improvements)
 - Performance optimization potential
 - Automatic optimization (no app changes needed)
@@ -453,24 +458,27 @@ e) Providing ternary state visibility to guest operating systems via MSR/CPUID/h
 - Kernel 5.15.0
 - Intel Core i5/i7 (VT-x support required)
 
-### Performance Metrics (Expected)
+### Performance Metrics
 
-**VM Scheduling:**
+**VM Scheduling (Measured in PoC):**
 - PSI detection latency: <100μs
 - Scheduling decision overhead: <50μs
 - State transition tracking: Real-time
 
-**Memory Management (PoC Measured):**
+**Memory Management (Measured in PoC):**
 - Page table walk overhead: <5%
 - Memory pressure detection: <1ms
 - Dynamic reallocation: <10ms
+- Active VM overhead: <2%
 
-**Power Efficiency (Projected - Pending Production Validation):**
-- Idle VM power reduction: 15-20% (projected)
-- Active VM overhead: <2% (measured in PoC)
+**Power Efficiency (PROJECTED — NOT CLAIMED):**
+
+⚠️ The following are projections based on extrapolation from kernel-level measurements. They are NOT claimed improvements until validated at production scale:
+
+- Idle VM power reduction: 15-20% (projected, not measured at hypervisor level)
 - Overall cluster efficiency: Pending production measurement
 
-**Note:** Performance projections based on proof-of-concept measurements. Production-scale validation is a planned production enhancement (exemplary embodiment).
+**NOTE:** The claimed invention is the METHOD of PSI state management at hypervisor level, not specific performance numbers. Actual efficiency gains will depend on workload characteristics.
 
 ---
 
@@ -609,16 +617,20 @@ e) Providing ternary state visibility to guest operating systems via MSR/CPUID/h
 
 ---
 
-## INVESTOR PITCH SUMMARY
+## APPENDIX B: BUSINESS DEVELOPMENT NOTES (NON-CLAIM, NON-ESSENTIAL)
 
-### The Problem
+**⚠️ NOTICE: This section contains business strategy and investor materials. It is NOT part of the technical enabling disclosure and is NOT essential to the claimed invention. This material is provided for informational purposes only and should be REMOVED before USPTO filing.**
 
-Cloud providers waste 30-40% of computing capacity due to:
+---
+
+### The Problem (Industry Context)
+
+Cloud providers experience inefficiencies due to:
 - Overprovisioning (to handle bursts)
 - Inefficient VM scheduling (binary active/idle)
 - Poor power management (all-on or all-off)
 
-### The Solution
+### The Solution (Summary)
 
 **ZIME Ternary Hypervisor:**
 - Detects VM "transition intensity" (PSI state)
@@ -626,14 +638,14 @@ Cloud providers waste 30-40% of computing capacity due to:
 - Optimizes power and performance automatically
 - **Zero guest modifications required**
 
-### The Market
+### The Market (Public Data — NOT CLAIMED)
 
 - $170B cloud computing market (AWS, Azure, Google)
 - Every major cloud runs on hypervisors
 - One kernel module = thousands of VMs benefit
 - Open-source = rapid adoption
 
-### The Ask
+### Business Strategy (INTERNAL NOTES — REMOVE BEFORE FILING)
 
 - **$2M seed round** for:
   - Hardware testing (2 weeks)
@@ -641,7 +653,7 @@ Cloud providers waste 30-40% of computing capacity due to:
   - Open-source launch (8 weeks)
   - Cloud provider partnerships (12 weeks)
 
-### The Return
+### Valuation Context (INTERNAL NOTES — REMOVE BEFORE FILING)
 
 - **Exit Strategy:** Acquisition by AWS/Azure/Google
 - **Comparable Acquisitions:**
@@ -686,32 +698,27 @@ Cloud providers waste 30-40% of computing capacity due to:
 
 ## LEGAL IMPLICATIONS
 
-### Patent Strength Increased
+### Patent Strength Assessment
 
 **Original Patent:**
 - Software implementation (kernel, libraries, UEFI)
-- Good: Working prototype
-- Weak: Single deployment layer
+- Working prototype validated
 
 **With Hypervisor Layer:**
 - Multi-layer implementation (UEFI → Hypervisor → Kernel → Apps)
-- **Excellent:** Cloud-scale deployment path
-- **Strong:** Market validation ($170B TAM)
+- Cloud-scale deployment path enabled
 
-### Defensibility Enhanced
+### Defensibility
 
-**Before:** "Interesting academic research"  
-**After:** "Production-ready cloud technology"
-
-**Infringement Detection:** Easier to detect (hypervisor layer is visible)  
-**Licensing Value:** Higher (one license = entire cloud deployment)  
-**Exit Valuation:** 10x-100x increase (addressable market expansion)
+**Technical defensibility:** Hypervisor layer provides clear implementation boundary  
+**Infringement detection:** Easier to detect (hypervisor layer is visible)  
+**Licensing structure:** One license covers entire deployment  
 
 ---
 
 ## CONCLUSION
 
-### Technical Achievement
+### Technical Achievement (Core Disclosure)
 
 ✅ **VMX Root Mode (Ring -1 equivalent) implementation complete** (894 lines)  
 ✅ **Deepest software-only layer** (below OS kernel)  
@@ -722,14 +729,15 @@ Cloud providers waste 30-40% of computing capacity due to:
 
 ✅ **Market expansion** (CPU/GPU → Cloud/VM)  
 ✅ **Patent strengthening** (single-layer → multi-layer)  
-✅ **Investor story** (academic → commercial ready)  
 ✅ **Deployment path** (open-source → cloud provider partnerships)
 
-### Financial Impact
+### Financial Projections (NON-CLAIM — REMOVE BEFORE FILING)
 
-**Conservative:** $100M-$500M acquisition (3-5 years)  
-**Optimistic:** $1B+ valuation (cloud efficiency at scale)  
-**Comparable:** VMware ($61B), Red Hat ($34B), Bromium ($500M)
+**⚠️ The following are business projections, NOT technical claims:**
+
+- Conservative: $100M-$500M acquisition (3-5 years)  
+- Optimistic: $1B+ valuation (cloud efficiency at scale)  
+- Comparable: VMware ($61B), Red Hat ($34B), Bromium ($500M)
 
 ---
 
