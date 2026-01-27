@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 27, 2026 (v22.1)  
+**Prepared:** January 27, 2026 (v22.2)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 ---
@@ -135,7 +135,7 @@ All benchmarks in this specification were conducted under the following conditio
 
 ## ABSTRACT
 
-This continuation patent describes significant improvements and extensions to the ZIME Ternary Computing System disclosed in provisional application #63/967,611. The improvements include: (1) UEFI firmware-level initialization of ternary state machines, enabling boot-time Psi-Uncertainty configuration; (2) distributed multi-node synchronization protocol for cluster-wide ternary state management; (3) empirically validated accuracy improvement through Psi-Uncertainty deferral (100% accuracy on decided cases, 30% deferral rate, 0% wrong-decision rate on committed operations); (4) cross-cluster performance optimization achieving 2.9M operations per second; and (5) production-grade kernel integration with automated resource management.
+This continuation patent describes significant improvements and extensions to the ZIME Ternary Computing System disclosed in provisional application #63/967,611. The improvements include: (1) UEFI firmware-level initialization of ternary state machines, enabling boot-time Psi-Uncertainty configuration; (2) distributed multi-node synchronization protocol for cluster-wide ternary state management; (3) empirically validated accuracy improvement through Psi-Uncertainty deferral (100% accuracy on decided cases, ~20% deferral rate at δ=0.10, 0% wrong-decision rate on committed operations); (4) cross-cluster performance optimization achieving 2.9M operations per second; and (5) production-grade kernel integration with automated resource management.
 
 ---
 
@@ -760,7 +760,9 @@ A method for initializing ternary computing capabilities at firmware level compr
 - (b) A TERNARY_CONFIG structure stored in UEFI Configuration Table containing: Magic (0x5A494D45), Version, PsiThreshold (default 0.5), PsiDelta (default 0.05), PoolPhysAddr, PoolSize
 - (c) Physical address registration in system memory map for kernel discovery
 - (d) Kernel parser that reads Configuration Table via gTernaryGuid to inherit ternary state. **Kernel Binding:** The primary embodiment uses Linux; the method applies to any UEFI-compatible OS.
-- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** For built-in driver (CONFIG_ZIME_TERNARY=y), validation is satisfied during kernel init before PID 1. **Alternative Embodiment:** Module-based deployment (insmod) satisfies validation within 30 seconds of load; this is a development convenience, not the claimed boot-time path. `/proc/ternary/state` returns a valid PSI ratio (floating-point in [0.0, 1.0]).
+- (e) Boot-time validation via /proc/ternary showing inherited configuration. **Satisfaction Event:** Validation is satisfied when the built-in driver (CONFIG_ZIME_TERNARY=y) creates `/proc/ternary/state` during kernel init, before PID 1 userspace. This is the ONLY path that satisfies the boot-time claim. `/proc/ternary/state` returns a valid PSI ratio (floating-point in [0.0, 1.0]).
+
+**Note:** Module-based deployment (insmod) is disclosed in Section 3 as a SEPARATE development/testing embodiment. It does NOT satisfy this boot-time claim.
 
 ### Claim 2: Uncertainty-Weighted Distributed Consensus Protocol
 A protocol for cluster-wide ternary decision consensus comprising:
@@ -828,7 +830,7 @@ A method of power management based on sustained Psi-Uncertainty rate comprising:
 
 **Canonical Interface Definition:** The hypervisor ABI comprises:
 - **Primary (vendor-neutral):** CPUID leaf 0x40000000 for hypervisor detection with ZIME feature flags; KVM hypercalls 0x01000001-0x01000004 for PSI state query, update, aggregate, and power management
-- **Optional (vendor-specific):** MSR addresses (e.g., AMD vendor space 0xC0010100-0xC0010103) as detailed in the Hypervisor Ring -1 Addendum; these are embodiment examples, not required interfaces
+- **Optional (vendor-specific):** MSR addresses (e.g., AMD vendor space 0xC0010300-0xC001030F) as detailed in the Hypervisor Ring -1 Addendum; these are embodiment examples, not required interfaces
 
 A method of integrating Psi-Uncertainty state management at the hypervisor layer comprising:
 - (a) **Event Monitoring:** Tracking VM exit events and interrupt frequencies; high exit frequency indicates high uncertainty state
