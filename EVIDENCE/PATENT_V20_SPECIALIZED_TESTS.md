@@ -260,3 +260,28 @@ FIX 3: CLAIM 7 CANONICAL INTERFACE - Primary (CPUID/hypercalls) vs Optional (MSR
 
 **All 5 Nodes:** ✅ V21 IS USPTO-READY: ALL CLAIMS VALIDATED
 
+
+---
+
+## V21.2 Validation: UEFI Architecture-Independence (2026-01-27T14:17:00Z)
+
+### V21.2 Changes from Parallel Session
+```
+Added Gemini Option A defense (UEFI architecture-independence):
+- Claim 1 now explicitly states UEFI is architecture-independent (x86, ARM, RISC-V)
+- Boot sequence ownership occurs BEFORE CPU instruction set matters
+- Defense against 'future architecture' attacks
+```
+
+### V21.2 Specific Tests: 25/25 (5 tests × 5 nodes)
+| Test | Description | Status |
+|------|-------------|--------|
+| UEFI Architectures | 6 supported (x86, x86_64, ARM, ARM64, RISC-V, IA64) | ✅ |
+| Boot Sequence | Config table created BEFORE ISA-specific code | ✅ |
+| Memory Survival | EfiReservedMemoryType survives ExitBootServices | ✅ |
+| Portable GUID | TERNARY_CONFIG uses GUID (architecture-independent) | ✅ |
+| Future Defense | "ANY platform implementing UEFI 2.0+" | ✅ |
+
+### V21.2 Node Results
+All 5 nodes: 5/5 tests passed ✅
+
