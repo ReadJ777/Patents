@@ -37,7 +37,7 @@
 │         transition_count (u8), deferral_start_time (u64)       │
 │                                                                 │
 │  CONFIGURABLE PARAMETERS:                                       │
-│    threshold = 0.5     // Decision boundary center              │
+│    threshold = 0.5     // Decision boundary center [0.1, 0.9]  │
 │    δ (delta) = 0.05-0.15  // Band half-width (0.15 for 30%)    │
 │    α = 0.1             // EWMA smoothing factor                 │
 │                                                                 │
@@ -46,11 +46,12 @@
 │    TIMEOUT_MS = 1000     // deferral timeout                   │
 │    SAFE_DEFAULT = BINARY_0  // fail-safe on timeout            │
 │                                                                 │
-│  Step 1: Normalize raw signal                                   │
-│          normalized = clamp(raw_sample / MAX_RAW, 0.0, 1.0)    │
+│  Step 1: Normalize raw signal (EXPLICIT FLOAT DIVISION)         │
+│          normalized = clamp((f32)raw_sample / (f32)MAX_RAW, 0.0, 1.0)
+│          // Note: Cast to f32 BEFORE division to avoid int div │
 │                                                                 │
-│  Step 2: Compute transition density                             │
-│          density = transition_count / 100                       │
+│  Step 2: Compute transition density (EXPLICIT FLOAT)            │
+│          density = (f32)transition_count / 100.0f               │
 │                                                                 │
 │  Step 3: Compute EWMA                                           │
 │          ewma_conf = α × normalized + (1-α) × previous_conf    │
@@ -67,9 +68,14 @@
 │          ELSE:                          → PSI_UNCERTAINTY       │
 │                                                                 │
 │  Step 6: Compute uncertainty_level (for voting weight)          │
-│          // Distance from center: 0 at extremes, 1 at threshold│
-│          uncertainty_level = 1.0 - 2.0 × |confidence - threshold|
-│          vote_weight = 1.0 - uncertainty_level  // = 2×|c-0.5| │
+│          // Max distance from threshold is max(threshold, 1-threshold)
+│          max_distance = max(threshold, 1.0 - threshold)         │
+│          raw_distance = |confidence - threshold|                │
+│          // Normalize to [0,1]: 0 at extremes, 1 at threshold  │
+│          uncertainty_level = clamp(1.0 - raw_distance/max_distance, 0.0, 1.0)
+│          // Weight: 0 at threshold (uncertain), 1 at extremes  │
+│          vote_weight = clamp(1.0 - uncertainty_level, 0.0, 1.0) │
+│          // Equivalently: vote_weight = raw_distance/max_distance│
 │                                                                 │
 │  Step 7: Handle deferral timeout                                │
 │          IF state == PSI_UNCERTAINTY:                           │
@@ -430,22 +436,28 @@ Transitions (matches SINGLE CONTROLLING RULE):
 Each node independently evaluates decision:
 confidence = compute_confidence(input_data)  // See Confidence Score definition
 
-// Uncertainty is distance from center (0.5), not from 1.0
-// Both 0.0 and 1.0 represent HIGH confidence (in opposite directions)
-uncertainty_level = 1.0 - 2.0 × |confidence - 0.5|  // 0 at extremes, 1 at center
+// Uncertainty with proper normalization for ANY threshold value:
+// max_distance handles asymmetric thresholds (e.g., threshold=0.7)
+max_distance = max(threshold, 1.0 - threshold)
+raw_distance = |confidence - threshold|
+uncertainty_level = clamp(1.0 - raw_distance / max_distance, 0.0, 1.0)
+// Result: 0 at extremes (confident), 1 at threshold (uncertain)
 
 // Classification per SINGLE CONTROLLING RULE:
-IF confidence > 0.55 → decide BINARY_1
-IF confidence < 0.45 → decide BINARY_0  
-IF confidence ∈ [0.45, 0.55] → PSI_PENDING (uncertainty quantified)
+lower_bound = threshold - δ
+upper_bound = threshold + δ
+IF confidence > upper_bound → decide BINARY_1
+IF confidence < lower_bound → decide BINARY_0  
+IF confidence ∈ [lower_bound, upper_bound] → PSI_PENDING (uncertainty quantified)
 ```
 
 **Phase 2: Weighted Psi Broadcast**
 ```
 IF local_state == PSI_PENDING:
     // Weight is inverse of uncertainty: confident nodes have MORE influence
-    weight = 1.0 - uncertainty_level  // = 2.0 × |confidence - 0.5|
-    BROADCAST { decision_id, node_id, data, uncertainty_level, weight, timestamp }
+    // Both weight and uncertainty are guaranteed in [0.0, 1.0]
+    vote_weight = clamp(1.0 - uncertainty_level, 0.0, 1.0)
+    BROADCAST { decision_id, node_id, data, uncertainty_level, vote_weight, timestamp }
     WAIT for weighted peer votes (timeout: 100ms)
 ```
 
