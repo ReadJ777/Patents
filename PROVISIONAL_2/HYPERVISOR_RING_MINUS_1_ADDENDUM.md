@@ -7,6 +7,8 @@
 **Patent Reference:** USPTO #63/967,611 (Enhancement)  
 **Market Impact:** Cloud computing ($200B+ market via AWS/Azure)  
 
+**SCOPE LIMITATION:** This addendum describes a SEPARATE invention (hypervisor-level ternary computing) that MAY be filed as a divisional if restriction is required. The hypervisor implementation is specific to **Linux KVM on x86-64 with Intel VT-x or AMD-V**. Cross-vendor portability (Hyper-V, Xen, VMware) is future work, not claimed herein.
+
 ---
 
 ## VALIDATION STATUS TABLE

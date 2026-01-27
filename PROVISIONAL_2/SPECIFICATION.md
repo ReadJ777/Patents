@@ -757,8 +757,8 @@ A protocol for cluster-wide ternary decision consensus comprising:
 - (a) Local evaluation producing BINARY_0, BINARY_1, or PSI_PENDING with quantified uncertainty level
 - (b) Weighted broadcast where vote weight = (1.0 - uncertainty_level)
 - (c) Uncertainty-weighted consensus where higher-confidence nodes have proportionally more influence
-- (d) Entropy-based tie-breaking using decision history when weighted sums are within δ
-- (e) Partition-safe deferral with explicit "partition_detected" flag when network failures occur
+- (d) Consensus margin evaluation using δ_c (consensus-delta, distinct from classification δ): strong consensus when `margin > δ_c`, weak consensus when `margin > δ_c/2` with entropy tie-break, no consensus otherwise
+- (e) Partition-safe deferral with explicit "partition_detected" flag triggered by heartbeat timeout (3 missed heartbeats at 500ms interval)
 - (f) Deterministic replay log enabling reproducibility of all Psi-Uncertainty transitions
 
 ### Claim 3: Empirically Validated Error Reduction with Defined Metrics
@@ -778,12 +778,24 @@ A method for achieving production-grade ternary performance on binary hardware c
 - (e) Measured 2.9M ops/sec across 3-node cluster with <2% CPU overhead per node
 
 ### Claim 5: Production-Grade Kernel Integration
-A Linux kernel module providing production-ready ternary computing comprising:
+A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) providing production-ready ternary computing comprising:
 - (a) /proc/ternary interface exposing: psi_threshold, psi_delta, total_attempts, decisions_committed, psi_deferrals, deferral_rate_percent
 - (b) Automatic memory pool management using kernel slab allocator
-- (c) Multi-node deployment with measured 100% uptime over 168M+ operations
+- (c) Boot-time initialization via early_initcall() ensuring availability before userspace
 - (d) Per-operation logging to kernel ring buffer (dmesg) for debugging
 - (e) <2% CPU overhead verified via perf stat measurements
+- (f) Multi-node deployment with measured 100% uptime over 168M+ operations
+
+### Claim 6: Uncertainty-Aware Node Power Management
+A method of distributed power management based on sustained uncertainty comprising:
+- (a) Monitoring per-node Psi-Uncertainty rate: `node_psi_rate = psi_deferrals / total_attempts`
+- (b) Threshold detection: IF `node_psi_rate > HIBERNATE_THRESHOLD` (default: 0.90) for `HIBERNATE_WINDOW` (default: 60 seconds), node is candidate for hibernation
+- (c) Workload redistribution: Route pending decisions to nodes with `psi_rate < 0.50` (confident nodes)
+- (d) Power state transition: Hibernate node enters C6/C7 sleep state, reducing power consumption by 90%+
+- (e) Wake condition: Node wakes on input distribution shift (detected via inter-node heartbeat carrying input statistics) or explicit MSR_ZIME_WAKE_NODE write
+- (f) Computational safety: Hibernation only permitted when `confident_node_count >= QUORUM` (default: 2), ensuring cluster can still make decisions
+
+**Rationale:** If a node cannot decide anything with confidence, forcing it to guess wastes power and produces errors. This claim extends per-operation deferral to per-node hibernation—uncertainty-aware power gating at cluster scale.
 
 ---
 
@@ -791,14 +803,16 @@ A Linux kernel module providing production-ready ternary computing comprising:
 
 This provisional application discloses multiple related inventions that share a common inventive concept (Psi-Uncertainty ternary computing). If an examiner issues a restriction requirement, the following election strategy is recommended:
 
-**Unified Inventive Concept:** All claims relate to the core innovation of Psi-Uncertainty state management—a third computational state that defers decisions when confidence is insufficient.
+**Unified Inventive Concept:** Claims 1-6 in the main specification share a common inventive concept: Psi-Uncertainty state management for decision deferral and power optimization.
+
+**Hypervisor Addendum:** The HYPERVISOR_RING_MINUS_1_ADDENDUM.md describes a SEPARATE invention (hypervisor-level ternary computing on Linux KVM). It is included for completeness but may be filed as a divisional application if restriction is required.
 
 **If Restriction Required, Elect:**
-1. **Primary Election:** Claims 1, 3, 5 (UEFI + Kernel + Metrics) - the core single-node implementation
-2. **Divisional 1:** Claim 2 (Distributed Consensus) - can be filed as continuation
-3. **Divisional 2:** Hypervisor layer (separate filing recommended if restriction)
+1. **Primary Election:** Claims 1, 3, 5, 6 (UEFI + Kernel + Metrics + Power Management) - core single-node implementation
+2. **Divisional 1:** Claim 2 (Distributed Consensus) - cluster extension
+3. **Divisional 2:** Hypervisor layer (HYPERVISOR_RING_MINUS_1_ADDENDUM.md) - separate filing, limited to Linux KVM
 
-**Argument Against Restriction:** Claims 1-5 share the same inventive concept (Psi-Uncertainty) and would be examined together under MPEP 806.05(c) as they "overlap in scope" and "share a special technical feature."
+**Argument Against Restriction:** Claims 1-6 share the same inventive concept (Psi-Uncertainty) and would be examined together under MPEP 806.05(c) as they "overlap in scope" and "share a special technical feature."
 
 ---
 
