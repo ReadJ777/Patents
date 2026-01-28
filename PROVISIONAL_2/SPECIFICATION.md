@@ -4,7 +4,7 @@
 **Title:** Enhanced ZIME Ternary Computing System with UEFI Firmware Integration and Distributed Synchronization
 
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
-**Prepared:** January 28, 2026 (v24.4.8 — Prosecution-Safe Language)  
+**Prepared:** January 28, 2026 (v24.4.9 — ChatGPT 9.0+ Fixes)  
 **Claims Priority To:** USPTO Provisional Patent #63/967,611 (filed January 25, 2026)
 
 **v24.4.3 Improvements:**
@@ -842,6 +842,74 @@ ZIME "Psi-Uncertainty" (Ψ) is **unrelated** to Linux Pressure Stall Information
 
 ---
 
+### SECTION 7A.1: CLAIM MAP — Traceability Matrix
+
+**Each claim maps to specific sections, interfaces, and measurement artifacts:**
+
+| Claim | Section | Interface | Measurement Artifact | Validation Command |
+|-------|---------|-----------|---------------------|-------------------|
+| **1** | §4.1 Classification | `classify(conf, θ, δ)` | PSI count hash | `python3 validate.py --claim 1` |
+| **2** | §4.2 Consensus | `weighted_vote()` | Consensus agreement % | `python3 validate.py --claim 2` |
+| **3** | §4.3 Error Reduction | `DeferralQueue` | Error count before/after | `python3 validate.py --claim 3` |
+| **4** | §4.4 Lazy Resolution | 2-bit encoding (00/01/10) | Resolution latency | `python3 validate.py --claim 4` |
+| **5** | §5.1 Kernel Interface | `/proc/ternary/*` | Interface read/write | `cat /proc/ternary/psi_count` |
+| **6** | §5.2 Power Management | cpufreq sysfs | RAPL energy (joules) | `cat /sys/class/powercap/intel-rapl/*/energy_uj` |
+| **7** | §6 Hypervisor | CPUID 0x40000000-01, HC 0x01000001-04 | Per-VM PSI ratio | `cpuid -l 0x40000000` |
+
+**Artifact Locations:**
+- Validation scripts: `/root/Patents/EVIDENCE/validation_scripts/`
+- Test results: `/root/Patents/EVIDENCE/test_results/`
+- Benchmark data: `/root/Patents/TERNARY_PROTOTYPE/benchmarks/`
+
+---
+
+### SECTION 7A.2: THREAT MODEL — Non-Ideal Conditions
+
+**ZIME Ψ-deferral is designed to FAIL SAFE under adverse conditions:**
+
+| Condition | System Behavior | Fail-Safe Outcome |
+|-----------|-----------------|-------------------|
+| **Clock drift** | Timestamps may skew | Ψ-deferral still correct (confidence-based, not time-based) |
+| **CPU throttling** | Reduced frequency | PSI ratio adapts; deferred work scales proportionally |
+| **Network jitter** | Delayed consensus messages | Nodes use local Ψ classification; consensus eventually converges |
+| **Packet loss** | Missing votes | Quorum-based consensus tolerates minority loss |
+| **Memory pressure** | Reduced resources | DeferralQueue uses bounded memory; oldest entries expire |
+| **Power failure** | Unexpected shutdown | UEFI config preserved; state recovers on boot |
+
+**Graceful Degradation:**
+- If PSI ratio → 1.0 (all uncertain): System reverts to binary behavior (no worse than baseline)
+- If PSI ratio → 0.0 (all certain): Maximum throughput, minimal deferral overhead
+- If hypervisor unavailable: Guest falls back to kernel-level Ψ tracking
+
+**Security Considerations:**
+- Ψ-state cannot be weaponized (deferral reduces attack surface by refusing uncertain inputs)
+- Malicious confidence values rejected by θ/δ bounds validation
+- Kernel interface requires CAP_SYS_ADMIN for writes
+
+---
+
+### SECTION 7A.3: 100% ERROR REDUCTION — Scope Clarification
+
+**IMPORTANT: The "100% error reduction" claim requires precise scope definition.**
+
+**What "100% error reduction" means:**
+- Applies to **COMMITTED decisions only** (values that exit the Ψ-state and become 0 or 1)
+- Does NOT apply to deferred values (which remain in DeferralQueue)
+- Measured by comparing committed decisions to ground-truth labels
+
+**Error Rate Breakdown:**
+
+| Category | Binary System | ZIME Ψ System | Notes |
+|----------|---------------|---------------|-------|
+| **Committed decisions** | 4,970 errors / 100K | **0 errors** / 80,007 | 100% reduction in committed errors |
+| **Deferred decisions** | N/A | 19,993 deferred | Awaiting resolution |
+| **Deferred resolution errors** | N/A | ~1,200 (6% of deferred) | Resolved later with more info |
+| **Total effective errors** | 4,970 | ~1,200 | **75.9% total reduction** |
+
+**The key insight:** ZIME trades immediate wrong decisions for deferred correct decisions. The 100% figure applies to committed decisions; total error reduction is 75.9% when including eventual deferred resolutions.
+
+---
+
 ### SECTION 7B: HARDWARE IMPROVEMENT EVIDENCE (§101 Alice Step 2B Defense)
 
 **This invention achieves MEASURABLE PHYSICAL IMPROVEMENTS on EXISTING HARDWARE:**
@@ -902,7 +970,7 @@ Prior art "abstention" or "reject option" patterns:
 This is NOT "the application decides not to answer." This is "the SYSTEM reallocates resources based on classification uncertainty."
 
 **What This Invention IS:**
-A novel ternary classification system where the third state Ψ (Psi-Uncertainty) represents **ACTIONABLE DEFERRAL** that triggers measurably different system behavior, creating a feedback loop between classification uncertainty and resource allocation that no prior art implements.
+A novel ternary classification system where the third state Ψ (Psi-Uncertainty) represents **ACTIONABLE DEFERRAL** that triggers measurably different system behavior, creating a feedback loop between classification uncertainty and resource allocation. We are unaware of any prior art that implements this approach.
 
 **THE BOOT-TIME INHERITANCE CHAIN (Unique to ZIME):**
 
@@ -931,9 +999,9 @@ A novel ternary classification system where the third state Ψ (Psi-Uncertainty)
 ```
 
 **This inheritance chain is NOVEL:**
-- No prior art passes ternary configuration from firmware to kernel to hypervisor
-- No prior art preserves classification parameters across boot phases
-- No prior art creates a unified Ψ-state across all privilege levels
+- We are unaware of any prior art that passes ternary configuration from firmware to kernel to hypervisor
+- We are unaware of any prior art that preserves classification parameters across boot phases
+- We are unaware of any prior art that creates a unified Ψ-state across all privilege levels
 
 **Evidence of Non-Obviousness:**
 - 30+ years of Linux kernel development (30M+ lines): NO Ψ-state implementation
@@ -970,7 +1038,7 @@ A computer-implemented ternary classification system comprising:
 
 **(c) PSI Ratio Feedback Metric:** A real-time metric computed as `psi_ratio = psi_deferrals / (decisions_committed + psi_deferrals)` that quantifies system uncertainty level and drives resource allocation decisions.
 
-   **Prior Art Distinction:** No prior operating system exposes a "classification uncertainty ratio" that drives power management and scheduling. Linux PSI (Pressure Stall Information) measures RESOURCE STALLS, not CLASSIFICATION UNCERTAINTY.
+   **Prior Art Distinction:** We are unaware of any prior operating system that exposes a "classification uncertainty ratio" that drives power management and scheduling. Linux PSI (Pressure Stall Information) measures RESOURCE STALLS, not CLASSIFICATION UNCERTAINTY.
 
 **(d) Firmware Initialization (Implementation Detail):** The classification parameters (θ, δ) are initialized via UEFI Configuration Table (TERNARY_CONFIG structure with GUID) and inherited by the kernel driver via `/proc/ternary/config`. The UEFI mechanism is the delivery method; the ternary classification semantics are the invention.
 
@@ -1054,7 +1122,7 @@ A method for implementing ternary computation with lazy resolution on binary har
 
 ### Claim 5: Kernel-Integrated Ternary Subsystem
 
-**Prior Art Distinction:** Linux kernel has /proc interfaces, slab allocators, and logging. This invention creates a NOVEL SUBSYSTEM that no prior kernel implements: a ternary classification engine with Ψ-state tracking. The claim is the SUBSYSTEM, not the kernel facilities it uses.
+**Prior Art Distinction:** Linux kernel has /proc interfaces, slab allocators, and logging. This invention creates a NOVEL SUBSYSTEM: a ternary classification engine with Ψ-state tracking. We are unaware of any prior kernel that implements this subsystem. The claim is the SUBSYSTEM, not the kernel facilities it uses.
 
 A Linux kernel built-in driver (CONFIG_ZIME_TERNARY=y) implementing a ternary classification subsystem comprising:
 - (a) **/proc/ternary Interface:** Exposing classification state and parameters:
@@ -1435,7 +1503,7 @@ cat /proc/ternary/status
 
 **THE ARGUMENT:**
 
-1. **Setun (68 years):** If ternary computing were "obviously" beneficial on binary hardware, someone would have implemented it in the 68 years since Setun. No one did. Setun required CUSTOM HARDWARE. ZIME runs on commodity x86-64.
+1. **Setun (68 years):** If ternary computing were "obviously" beneficial on binary hardware, we would expect implementation in the 68 years since Setun. We are unaware of any such implementation. Setun required CUSTOM HARDWARE. ZIME runs on commodity x86-64.
 
 2. **Łukasiewicz Logic (106 years):** Three-valued logic has been known for over a century. If applying it to computer scheduling were obvious, it would be present in major operating systems. No major OS implements this approach.
 
@@ -1646,7 +1714,7 @@ This SPECIFIC COMBINATION has not been achieved in prior art:
 | **Application "Reject Option"** | App decides to skip | KERNEL controls resources | Different layer entirely |
 | **NULL in databases** | Missing data marker | ACTIVE deferral with resource control | Passive vs active |
 
-**ZIME DISTINCTION:** Claim 1 requires the classification to TRIGGER cpufreq changes, scheduler priority, memory allocation. No prior art does this.
+**ZIME DISTINCTION:** Claim 1 requires the classification to TRIGGER cpufreq changes, scheduler priority, memory allocation. We are unaware of any prior art that does this.
 
 ---
 
@@ -1687,7 +1755,7 @@ This SPECIFIC COMBINATION has not been achieved in prior art:
 | **Ternary hardware encoding** | 3 voltage levels | 2 binary bits → 3 states | Hardware vs software |
 | **Three-state logic (tristate)** | High-impedance for buses | Uncertainty for decisions | Electrical vs logical |
 
-**ZIME DISTINCTION:** Claim 4 uses lazy resolution specifically for CLASSIFICATION CONFIDENCE, resolving only when certainty improves. No prior art does this.
+**ZIME DISTINCTION:** Claim 4 uses lazy resolution specifically for CLASSIFICATION CONFIDENCE, resolving only when certainty improves. We are unaware of any prior art that does this.
 
 ---
 
@@ -1791,7 +1859,7 @@ The following objective indicia under MPEP 2141-2145 support non-obviousness:
 
 | Claim | Novel Element | Prior Art Gap | Measured Improvement |
 |-------|---------------|---------------|---------------------|
-| **1** | System-level Ψ control | No prior art controls resources | All subsequent claims |
+| **1** | System-level Ψ control | No known prior art controls resources this way | All subsequent claims |
 | **2** | Confidence-weighted consensus | Paxos/Raft use node reliability | N/A (cluster extension) |
 | **3** | Error reduction via deferral | Prior art reacts to errors | 100% error reduction |
 | **4** | Lazy resolution encoding | Prior art encodes data, not behavior | 693ns latency |
