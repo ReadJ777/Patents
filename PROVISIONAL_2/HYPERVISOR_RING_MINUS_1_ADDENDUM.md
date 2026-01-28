@@ -1,11 +1,11 @@
 # RING -1 HYPERVISOR LAYER - PATENT ADDENDUM
 ## Ternary Computing at the Deepest Software Layer
 
-**Prepared:** January 27, 2026 (v24.4.7 — Claims/Projections Separation)  
+**Prepared:** January 28, 2026 (v24.4.8 — Prosecution-Safe Language)  
 **Inventor:** JaKaiser Smith (ReadJ@PaP.Arazzi.Me)  
 **Status:** Proof-of-Concept Implemented (894 lines)  
 **Patent Reference:** USPTO #63/967,611 (Enhancement)  
-**Version:** v24.4.7 (synchronized with SPECIFICATION.md)  
+**Version:** v24.4.8 (synchronized with SPECIFICATION.md)  
 
 **SCOPE AND PRIORITY:** This addendum describes a hypervisor-level ternary computing extension that MAY be filed as a divisional if restriction is required. The hypervisor implementation described herein is the **enabling disclosure** on Linux KVM with Intel VT-x or AMD-V. 
 
